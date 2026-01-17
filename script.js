@@ -247,8 +247,12 @@ function saveGroupEditCombined(groupKey) {
         const content = lines.slice(1).join('\n').trim();
         console.log('Processing progression - Title:', title, 'Content length:', content.length);
         
-        if (title && content) {
-            newProgressions.push({ title, content, displayTitle: title });
+        // Allow progressions with content only (title is optional)
+        if (content) {
+            newProgressions.push({ title: title || content, content: content || title, displayTitle: title || content });
+        } else if (title) {
+            // If only title, use it as both title and content
+            newProgressions.push({ title, content: title, displayTitle: title });
         }
     });
     
