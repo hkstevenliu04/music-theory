@@ -118,7 +118,7 @@ function loadProgressions() {
             
             // Add single Edit button at the end if owner mode
             if (isOwnerMode()) {
-                allContent += `<div class="group-edit-container"><button class="group-edit-btn" onclick="startGroupEdit('${key}')">Edit</button></div>`;
+                allContent += `<div class="group-edit-container"><span class="edit-icon" onclick="startGroupEdit('${key}')" title="Edit">✏️</span></div>`;
             }
             
             // Make group title clickable to edit name if owner mode

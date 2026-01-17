@@ -347,8 +347,6 @@ main {
     padding-top: 15px;
     border-top: 1px solid #333;
 }
-
-.progression-edit-row {
     margin-bottom: 15px;
     padding: 10px;
     background: #2d2d2d;
@@ -632,7 +630,7 @@ main {
 }
 
 .edit-icon {
-    font-size: 2em;
+    font-size: 1.3em;
     cursor: pointer;
     transition: transform 0.2s;
 }

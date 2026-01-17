@@ -84,6 +84,12 @@ function loadDetailView() {
     const prog = progs[currentProgId];
     const sectionLabels = ['Skill', 'Song'];
     
+    // Update the header title with the clicked line content
+    const params = new URLSearchParams(window.location.search);
+    const content = params.get('content');
+    const mainTitle = content || (prog.title || 'Unknown');
+    document.getElementById('progressionTitle').textContent = '🎵 ' + escapeHtml(mainTitle);
+    
     // Show edit button only in owner mode
     const controlsDiv = document.getElementById('detailControls');
     if (isOwnerMode()) {
