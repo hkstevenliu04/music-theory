@@ -358,9 +358,14 @@ main {
     color: #DC143C;
     font-weight: bold;
     font-size: 1.15em;
-    background: rgba(220, 20, 60, 0.08);
     padding: 2px 6px;
     border-radius: 3px;
+}
+
+.bullet-dot {
+    color: #DC143C;
+    font-weight: bold;
+    font-size: 1.3em;
 }
 
 .clickable-line {

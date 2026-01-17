@@ -116,7 +116,7 @@ function loadDetailView() {
         contentLines.forEach((line, idx) => {
             // Escape first, then parse **text** for styled sections
             const escapedLine = escapeHtml(line);
-            const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '● <span class="styled-text">$1</span>');
+            const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
             sectionsHtml += `<p class="detail-line">${styledLine}</p>`;
         });
     } else {
