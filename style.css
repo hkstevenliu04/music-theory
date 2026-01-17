@@ -18,6 +18,7 @@ body {
     margin: 0 auto;
     background: rgba(45, 45, 45, 0.85);
     border-radius: 10px;
+    border: 3px solid #00d4ff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
@@ -28,6 +29,7 @@ header {
     padding: 40px 20px;
     text-align: center;
     border-bottom: 2px solid #00d4ff;
+    position: relative;
 }
 
 header h1 {
@@ -584,7 +586,8 @@ main {
     font-weight: bold;
     position: absolute;
     right: 20px;
-    top: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .back-btn:hover {
