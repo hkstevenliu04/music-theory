@@ -3,6 +3,76 @@ const STORAGE_KEYS = {
     PROGRESSION_DETAILS: 'progressionDetails'
 };
 
+// Config: enable edit UI only when viewing locally
+const EDIT_UI_ENABLED = (
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1' ||
+    location.protocol === 'file:'
+);
+
+// Check owner mode
+function isOwnerMode() {
+    return EDIT_UI_ENABLED;
+}
+
+// Start editing a theory
+function startEditTheory(key) {
+    if (!isOwnerMode()) return;
+    
+    const progressionDetails = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSION_DETAILS)) || {};
+    const theoryData = typeof progressionDetails[key] === 'string' 
+        ? { theory: progressionDetails[key], music: '' } 
+        : (progressionDetails[key] || { theory: '', music: '' });
+    
+    const card = document.querySelector(`[data-theory-key="${key}"]`);
+    card.innerHTML = `
+        <div class="theory-card-edit">
+            <div class="theory-edit-row">
+                <label style="display: block; margin-bottom: 8px; color: #b0b0b0;"><strong>Theory</strong>:</label>
+                <textarea class="theory-edit-theory" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.theory)}</textarea>
+            </div>
+            <div class="theory-edit-row">
+                <label style="display: block; margin-bottom: 8px; margin-top: 12px; color: #b0b0b0;"><strong>Music</strong>:</label>
+                <textarea class="theory-edit-music" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.music)}</textarea>
+            </div>
+            <div class="theory-edit-controls">
+                <button class="theory-save-btn" onclick="saveTheory('${key}')">Save</button>
+                <button class="theory-cancel-btn" onclick="cancelEditTheory('${key}')">Cancel</button>
+                <button class="theory-delete-btn" onclick="deleteTheory('${key}')">Delete</button>
+            </div>
+        </div>
+    `;
+}
+
+// Save theory edits
+function saveTheory(key) {
+    const theory = document.querySelector(`[data-theory-key="${key}"] .theory-edit-theory`).value.trim();
+    const music = document.querySelector(`[data-theory-key="${key}"] .theory-edit-music`).value.trim();
+    
+    const progressionDetails = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSION_DETAILS)) || {};
+    progressionDetails[key] = { theory, music };
+    localStorage.setItem(STORAGE_KEYS.PROGRESSION_DETAILS, JSON.stringify(progressionDetails));
+    
+    loadTheories();
+}
+
+// Cancel theory edit
+function cancelEditTheory(key) {
+    loadTheories();
+}
+
+// Delete theory
+function deleteTheory(key) {
+    if (!isOwnerMode()) return;
+    if (!confirm('Are you sure you want to delete this theory?')) return;
+    
+    const progressionDetails = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSION_DETAILS)) || {};
+    delete progressionDetails[key];
+    localStorage.setItem(STORAGE_KEYS.PROGRESSION_DETAILS, JSON.stringify(progressionDetails));
+    
+    loadTheories();
+}
+
 // Load and display all theories
 function loadTheories() {
     const progressionDetails = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSION_DETAILS)) || {};
@@ -30,9 +100,17 @@ function loadTheories() {
         const lines = item.theory.split('\n').filter(l => l.trim());
         const firstLine = lines[0] || 'Untitled';
         
+        let editBtn = '';
+        if (isOwnerMode()) {
+            editBtn = `<button class="theory-edit-btn" onclick="startEditTheory('${item.key}')">✏️ Edit</button>`;
+        }
+        
         html += `
-            <div class="theory-card">
-                <div class="theory-card-title">${escapeHtml(firstLine)}</div>
+            <div class="theory-card" data-theory-key="${item.key}">
+                <div class="theory-card-header">
+                    <div class="theory-card-title">${escapeHtml(firstLine)}</div>
+                    ${editBtn}
+                </div>
                 <div class="theory-card-content">
         `;
         
