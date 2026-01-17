@@ -100,6 +100,8 @@ function loadDetailView() {
     
     // Organize content lines with labels only if multiple lines
     const contentLines = prog.content.split('\n').filter(l => l.trim());
+    console.log('Content lines count:', contentLines.length);
+    console.log('Content lines:', contentLines);
     
     let sectionsHtml = '';
     
@@ -110,6 +112,7 @@ function loadDetailView() {
         // Multiple lines - add Skill and Song labels
         contentLines.forEach((line, idx) => {
             const label = idx < sectionLabels.length ? sectionLabels[idx] : null;
+            console.log('Line', idx, ':', line, 'Label:', label);
             if (label) {
                 sectionsHtml += `
                     <div class="detail-section">
@@ -122,6 +125,7 @@ function loadDetailView() {
             }
         });
     }
+    console.log('Final sectionsHtml:', sectionsHtml);
     
     document.getElementById('detailContent').innerHTML = `
         <div class="detail-box">
