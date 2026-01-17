@@ -57,9 +57,14 @@ function startDetailEdit() {
 function saveDetailEdit() {
     const content = document.getElementById('edit-detail-content').value.trim();
     
+    console.log('Saving with lineTitle:', currentLineTitle); // Debug
+    console.log('Content:', content); // Debug
+    
     const progressionDetails = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSION_DETAILS)) || {};
     progressionDetails[currentLineTitle] = content;
     localStorage.setItem(STORAGE_KEYS.PROGRESSION_DETAILS, JSON.stringify(progressionDetails));
+    
+    console.log('Saved progressionDetails:', progressionDetails); // Debug
     
     loadDetailView();
 }
