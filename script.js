@@ -338,8 +338,40 @@ function showDetail(index, lineIndex) {
 
 // Load progressions when page starts (only on chord-progressions page)
 window.addEventListener('DOMContentLoaded', () => {
+    // Load site description if on main page
+    if (document.getElementById('siteDescription')) {
+        loadSiteDescription();
+    }
+    
     // Only load progressions if the progressionsList element exists
     if (document.getElementById('progressionsList')) {
         loadProgressions();
     }
 });
+
+// Load and display site description
+function loadSiteDescription() {
+    const savedDescription = localStorage.getItem('siteDescription') || 'Learn and explore chord progressions and music theory concepts.';
+    document.getElementById('siteDescription').textContent = savedDescription;
+    
+    // Show edit button in owner mode
+    if (isOwnerMode()) {
+        document.getElementById('editDescBtn').style.display = 'inline-block';
+        document.getElementById('editDescBtn').onclick = editSiteDescription;
+        document.getElementById('siteDescription').style.cursor = 'pointer';
+        document.getElementById('siteDescription').onclick = editSiteDescription;
+    }
+}
+
+// Edit site description
+function editSiteDescription() {
+    if (!isOwnerMode()) return;
+    
+    const currentDescription = localStorage.getItem('siteDescription') || 'Learn and explore chord progressions and music theory concepts.';
+    const newDescription = prompt('Edit site description:', currentDescription);
+    
+    if (newDescription !== null && newDescription.trim() !== '') {
+        localStorage.setItem('siteDescription', newDescription.trim());
+        loadSiteDescription();
+    }
+}
