@@ -99,7 +99,7 @@ function loadProgressions() {
             let allContent = `<h2 class="group-title" data-group-key="${key}">${escapeHtml(groupTitleText)}</h2>`;
             
             groups[key].forEach((prog, idx) => {
-                const contentLines = prog.content.split('\n');
+                const contentLines = prog.content.split('\n').filter(l => l.trim());
                 
                 // Add title if displayTitle is set
                 const displayTitle = prog.displayTitle !== undefined ? prog.displayTitle : prog.title;
