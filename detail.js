@@ -82,6 +82,7 @@ function deleteDetailProgression() {
 function loadDetailView() {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[currentProgId];
+    const sectionLabels = ['Skill', 'Song'];
     
     // Update the header title with the clicked line content
     const params = new URLSearchParams(window.location.search);
