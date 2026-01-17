@@ -17,6 +17,17 @@ function isOwnerMode() {
     return EDIT_UI_ENABLED;
 }
 
+// Toggle group content visibility
+function toggleGroupContent(key) {
+    const contentContainer = document.getElementById(`group-content-${key}`);
+    
+    if (contentContainer.classList.contains('collapsed')) {
+        contentContainer.classList.remove('collapsed');
+    } else {
+        contentContainer.classList.add('collapsed');
+    }
+}
+
 // Initialize progressions if empty
 function initializeProgressions() {
     let progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
@@ -302,16 +313,6 @@ function showDetail(index, lineIndex) {
 
 // Load progressions when page starts (only on chord-progressions page)
 window.addEventListener('DOMContentLoaded', () => {
-    // Toggle group content visibility
-function toggleGroupContent(key) {
-    const contentContainer = document.getElementById(`group-content-${key}`);
-    
-    if (contentContainer.classList.contains('collapsed')) {
-        contentContainer.classList.remove('collapsed');
-    } else {
-        contentContainer.classList.add('collapsed');
-    }
-}
 
 // Load site description if on main page
     if (document.getElementById('siteDescription')) {
