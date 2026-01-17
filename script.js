@@ -309,6 +309,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // Only load progressions if the progressionsList element exists
     if (document.getElementById('progressionsList')) {
         loadProgressions();
+        // Expand group "1" by default
+        const group1Box = document.querySelector('[data-group-key="1"]');
+        if (group1Box) {
+            group1Box.click();
+        }
     }
 });
 
