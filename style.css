@@ -1005,20 +1005,20 @@ footer {
     align-items: center;
     justify-content: space-between;
     padding: 12px 15px;
-    background: linear-gradient(135deg, #DC143C 0%, #8B0A1A 100%);
+    background: rgba(20, 20, 20, 0.9);
     border-radius: 3px;
     margin-bottom: 8px;
-    box-shadow: 0 0 20px rgba(220, 20, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(220, 20, 60, 0.6);
+    box-shadow: 0 0 20px rgba(220, 20, 60, 0.4), inset 0 1px 0 rgba(220, 20, 60, 0.2);
+    border: 1px solid rgba(220, 20, 60, 0.5);
 }
 
 .theory-title-text {
-    color: #ffffff;
+    color: #DC143C;
     font-weight: bold;
     font-size: 0.95em;
     word-wrap: break-word;
     flex: 1;
-    text-shadow: 0 0 10px rgba(220, 20, 60, 0.6);
+    text-shadow: 0 0 10px #DC143C, 0 0 20px rgba(220, 20, 60, 0.6), 0 0 30px rgba(220, 20, 60, 0.3);
 }
 
 .theory-subtitle-item {
