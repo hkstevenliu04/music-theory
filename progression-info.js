@@ -91,10 +91,8 @@ function loadDetailView() {
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
     const prog = progs[currentProgId];
     
-    // Update the header title with the clicked line content
-    const params = new URLSearchParams(window.location.search);
-    const content = params.get('content');
-    const mainTitle = content || (prog.title || 'Unknown');
+    // Update the header title with the progression title
+    const mainTitle = prog.title || 'Unknown';
     document.getElementById('progressionTitle').textContent = escapeHtml(mainTitle);
     
     // Show edit button only in owner mode

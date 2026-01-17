@@ -161,8 +161,11 @@ function loadProgressions() {
                 contentLines.forEach((line, lineIdx) => {
                     // Parse **text** for styled sections
                     const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="styled-text">$1</span>');
+                    // Only make lines with content clickable
+                    const hasContent = line.trim().length > 0;
+                    const clickableClass = hasContent ? 'clickable-line' : '';
                     allContent += `
-                        <p class="progression-notes">${styledLine}</p>
+                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex})"` : ''}>${styledLine}</p>
                     `;
                 });
             });
@@ -281,17 +284,9 @@ function cancelGroupEdit(groupKey) {
 }
 
 // Show detail page for a progression
-function showDetail(index, lineIndex) {
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    const prog = progs[index];
-    
-    // Get the actual line content
-    const contentLines = prog.content.split('\n').filter(l => l.trim());
-    const lineContent = contentLines[lineIndex] || prog.title;
-    
-    // Create detail page URL with progression data and line content
-    const encodedContent = encodeURIComponent(lineContent);
-    const detailUrl = `progression-info.html?id=${index}&content=${encodedContent}`;
+function showDetail(index) {
+    // Navigate to progression info page with just the ID
+    const detailUrl = `progression-info.html?id=${index}`;
     window.location.href = detailUrl;
 }
 
