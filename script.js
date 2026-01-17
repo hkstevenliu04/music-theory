@@ -113,8 +113,9 @@ function loadProgressions() {
                     // Only make lines with content clickable
                     const hasContent = line.trim().length > 0;
                     const clickableClass = hasContent ? 'clickable-line' : '';
+                    const escapedLine = line.replace(/'/g, "\\'");
                     allContent += `
-                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex})"` : ''}>${styledLine}</p>
+                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex}, '${escapedLine}')\"` : ''}>${styledLine}</p>
                     `;
                 });
             });
@@ -322,12 +323,13 @@ function editGroupTitle(groupKey) {
 }
 
 // Show detail page for a progression
-function showDetail(index) {
+function showDetail(index, lineContent) {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[index];
     
-    // Create detail page URL with progression data
-    const detailUrl = `detail.html?id=${index}`;
+    // Create detail page URL with progression data and clicked line
+    const encodedLine = encodeURIComponent(lineContent || prog.title);
+    const detailUrl = `detail.html?id=${index}&line=${encodedLine}`;
     window.location.href = detailUrl;
 }
 
