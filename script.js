@@ -160,7 +160,7 @@ function loadProgressions() {
                 
                 contentLines.forEach((line, lineIdx) => {
                     // Parse **text** for styled sections
-                    const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="styled-text">$1</span>');
+                    const styledLine = line.replace(/\*\*(.*?)\*\*/g, '● <span class="styled-text">$1</span>');
                     // Only make lines clickable if they have content AND don't contain styling markers
                     const hasContent = line.trim().length > 0;
                     const hasStyledText = line.includes('**');
