@@ -24,8 +24,9 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Store current progression ID for editing
+// Store current progression ID and title for editing
 let currentProgId = null;
+let currentLineTitle = null;
 
 // Start editing detail
 function startDetailEdit() {
@@ -84,11 +85,9 @@ function deleteDetailProgression() {
 
 // Load and display progression detail
 function loadDetailView() {
-    const params = new URLSearchParams(window.location.search);
-    const lineTitle = params.get('lineTitle') || 'Unknown';
-    
     // Update the header title with the clicked line
-    document.getElementById('progressionTitle').textContent = escapeHtml(lineTitle);
+    const titleToShow = currentLineTitle || 'Unknown';
+    document.getElementById('progressionTitle').textContent = escapeHtml(titleToShow);
     
     // Show edit button only in owner mode
     const controlsDiv = document.getElementById('detailControls');
@@ -131,7 +130,7 @@ function loadDetailView() {
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const content = params.get('content');
+    const lineTitle = params.get('lineTitle');
     
     if (id === null) {
         document.getElementById('detailContent').innerHTML = '<p>No progression selected.</p>';
@@ -139,6 +138,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     currentProgId = parseInt(id);
+    currentLineTitle = lineTitle || '';
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
     const prog = progs[currentProgId];
     
