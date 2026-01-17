@@ -62,11 +62,9 @@ function startDetailEdit() {
         <div class="detail-box">
             <div class="detail-edit-form">
                 <div class="progression-edit-row">
-                    <label style="display: block; margin-bottom: 8px; color: #b0b0b0;"><strong>Theory</strong> (use <strong>**text**</strong> to style):</label>
                     <textarea class="detail-edit-theory" style="min-height: 200px;">${escapeHtml(detailData.theory || '')}</textarea>
                 </div>
                 <div class="progression-edit-row">
-                    <label style="display: block; margin-bottom: 8px; margin-top: 15px; color: #b0b0b0;"><strong>Music</strong> (use <strong>**text**</strong> to style):</label>
                     <textarea class="detail-edit-music" style="min-height: 200px;">${escapeHtml(detailData.music || '')}</textarea>
                 </div>
                 <div class="detail-edit-controls">
