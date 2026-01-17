@@ -1011,6 +1011,13 @@ footer {
     margin-bottom: 3px;
     box-shadow: 0 0 20px rgba(220, 20, 60, 0.4), inset 0 1px 0 rgba(220, 20, 60, 0.2);
     border: 1px solid rgba(220, 20, 60, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theory-main-title:hover {
+    background: rgba(40, 40, 40, 0.9);
+    box-shadow: 0 0 20px rgba(220, 20, 60, 0.5), inset 0 1px 0 rgba(220, 20, 60, 0.3);
 }
 
 .theory-title-text {
