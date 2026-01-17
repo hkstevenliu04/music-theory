@@ -349,11 +349,14 @@ function editSiteDescription() {
 // Setup scroll fade effect for content containers
 function setupScrollFadeEffect() {
     const contentContainers = document.querySelectorAll('.group-content-container');
+    console.log('Setting up scroll fade for', contentContainers.length, 'containers');
     
-    contentContainers.forEach(container => {
+    contentContainers.forEach((container, idx) => {
+        console.log('Container', idx, '- scrollHeight:', container.scrollHeight, 'clientHeight:', container.clientHeight);
         let scrollTimeout;
         
         container.addEventListener('scroll', () => {
+            console.log('Scroll event fired on container', idx);
             // Add scrolling class to show scrollbar
             container.classList.add('scrolling');
             
@@ -362,6 +365,7 @@ function setupScrollFadeEffect() {
             
             // Set timeout to remove scrolling class after 1 second of no scrolling
             scrollTimeout = setTimeout(() => {
+                console.log('Removing scrolling class from container', idx);
                 container.classList.remove('scrolling');
             }, 1000);
         });
