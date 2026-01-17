@@ -172,8 +172,10 @@ function loadTheories() {
         // Add subtitles
         parsed.subtitles.forEach((subtitle, subIndex) => {
             const subtitleId = `${item.key}-sub-${subIndex}`;
+            // Mark first subtitle as active if no main content
+            const isActive = (index === 0 && subIndex === 0 && !parsed.mainContent.trim());
             titlesHtml += `
-                <div class="theory-subtitle-item ${index === 0 && subIndex === 0 ? 'active' : ''}" data-subtitle-id="${subtitleId}" onmouseenter="switchTheoryContent('${item.key}', ${subIndex})">
+                <div class="theory-subtitle-item ${isActive ? 'active' : ''}" data-subtitle-id="${subtitleId}" onmouseenter="switchTheoryContent('${item.key}', ${subIndex})">
                     <span class="theory-subtitle-text">${escapeHtml(subtitle.title)}</span>
                 </div>
             `;
@@ -217,8 +219,15 @@ function loadTheories() {
         });
     });
     
-    // Set initial content to first theory's main content
-    const firstMainContentId = `${theoriesWithContent[0].key}-main`;
+    // Set initial content - use main content if exists, otherwise use first subtitle
+    let firstContentId;
+    if (parsedTheories[0].mainContent.trim()) {
+        firstContentId = `${theoriesWithContent[0].key}-main`;
+    } else if (parsedTheories[0].subtitles.length > 0) {
+        firstContentId = `${theoriesWithContent[0].key}-sub-0`;
+    } else {
+        firstContentId = `${theoriesWithContent[0].key}-main`;
+    }
     
     const html = `
         <div class="theory-view-container">
@@ -227,7 +236,7 @@ function loadTheories() {
             </div>
             <div class="theory-content-right">
                 <div class="theory-content-display" id="theoryContentDisplay">
-                    ${contentData[firstMainContentId] || ''}
+                    ${contentData[firstContentId] || ''}
                 </div>
             </div>
         </div>
