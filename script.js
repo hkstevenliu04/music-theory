@@ -8,6 +8,20 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Helper function to safely encode group keys for use in HTML IDs
+function encodeGroupKey(key) {
+    return key.replace(/[#b]/g, (char) => {
+        if (char === '#') return 'sharp';
+        if (char === 'b') return 'flat';
+        return char;
+    });
+}
+
+// Helper function to decode group keys back from encoded form
+function decodeGroupKey(encoded) {
+    return encoded.replace(/sharp/g, '#').replace(/flat/g, 'b');
+}
+
 // Config: enable edit UI only when viewing locally
 const EDIT_UI_ENABLED = (
     location.hostname === 'localhost' ||
@@ -82,75 +96,52 @@ function loadProgressions() {
             const groupBox = document.createElement('div');
             groupBox.className = 'group-box';
             
-            // Add group header with Edit button inside the box
-            const groupHeaderContainer = document.createElement('div');
-            groupHeaderContainer.className = 'group-header-container';
-            
-            const groupHeader = document.createElement('h2');
-            groupHeader.className = 'group-title';
-            groupHeader.id = `group-title-${key}`;
-            
-            // Get custom group name if exists
-            const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
-            groupHeader.textContent = customNames[key] || key;
-            
-            if (isOwnerMode()) {
-                groupHeader.style.cursor = 'pointer';
-                groupHeader.onclick = () => editGroupTitle(key);
-            }
-            
-            groupHeaderContainer.appendChild(groupHeader);
-            
-            if (isOwnerMode()) {
-                const editBtn = document.createElement('button');
-                editBtn.className = 'group-edit-btn';
-                editBtn.textContent = 'Edit';
-                editBtn.onclick = () => startGroupEdit(key);
-                groupHeaderContainer.appendChild(editBtn);
-            }
-            
-            groupBox.appendChild(groupHeaderContainer);
-            
             // Create container for all progressions in this group
             const progContainer = document.createElement('div');
             progContainer.className = 'progressions-in-group';
-            progContainer.id = `group-${key}`;
+            const encodedKey = encodeGroupKey(key);
+            progContainer.id = `group-${encodedKey}`;
+            
+            // Create ONE single box for all progressions in this group
+            const groupContentBox = document.createElement('div');
+            groupContentBox.className = 'group-content-box';
+            
+            // Add group title at the top of content box
+            const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
+            const groupTitleText = customNames[key] || key;
+            
+            let allContent = `<h2 class="group-title" id="group-title-${encodedKey}">${escapeHtml(groupTitleText)}</h2>`;
             
             groups[key].forEach((prog, idx) => {
-                const elem = document.createElement('div');
-                elem.className = 'progression-in-box';
-                elem.id = `prog-${prog.origIndex}`;
                 const contentLines = prog.content.split('\n');
-                let linesHtml = '';
+                
+                // Add title if displayTitle is set
+                const displayTitle = prog.displayTitle !== undefined ? prog.displayTitle : prog.title;
+                if (displayTitle.trim()) {
+                    allContent += `<p class="progression-title-inline">${escapeHtml(displayTitle)}</p>`;
+                }
+                
                 contentLines.forEach((line, lineIdx) => {
-                    linesHtml += `
-                        <p class="progression-notes clickable-line" onclick="showDetail(${prog.origIndex})">${escapeHtml(line)}</p>
+                    // Parse **text** for styled sections
+                    const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="styled-text">$1</span>');
+                    allContent += `
+                        <p class="progression-notes clickable-line" onclick="showDetail(${prog.origIndex})">${styledLine}</p>
                     `;
                 });
-                // Use displayTitle if exists, otherwise use title
-                const displayTitle = prog.displayTitle !== undefined ? prog.displayTitle : prog.title;
-                const titleRow = displayTitle.trim() ? `
-                    <div class="progression-title-row">
-                        <h3>${escapeHtml(displayTitle)}</h3>
-                    </div>
-                ` : '';
-                
-                // Add edit button only in owner mode
-                const editButton = isOwnerMode() ? `
-                    <div class="prog-edit-btn-container">
-                        <button class="prog-edit-btn" onclick="startInlineEdit(${prog.origIndex})">Edit</button>
-                    </div>
-                ` : '';
-                
-                elem.innerHTML = `
-                    ${titleRow}
-                    <div class="prog-content" id="content-${prog.origIndex}">
-                        ${linesHtml}
-                    </div>
-                    ${editButton}
-                `;
-                progContainer.appendChild(elem);
             });
+            
+            // Add single Edit button at the end if owner mode
+            if (isOwnerMode()) {
+                allContent += `<div class="group-edit-container"><button class="group-edit-btn" onclick="startGroupEdit('${key}')">Edit</button></div>`;
+            }
+            
+            // Make group title clickable to edit name if owner mode
+            if (isOwnerMode()) {
+                allContent = allContent.replace(`id="group-title-${encodedKey}">`, `id="group-title-${encodedKey}" style="cursor: pointer;" onclick="editGroupTitle('${key}')">`);
+            }
+            
+            groupContentBox.innerHTML = allContent;
+            progContainer.appendChild(groupContentBox);
             
             groupBox.appendChild(progContainer);
             list.appendChild(groupBox);
@@ -164,10 +155,17 @@ function startInlineEdit(index) {
     }
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[index];
-    const elem = document.getElementById(`prog-${index}`);
     
-    elem.innerHTML = `
-        <div class="inline-edit-form">
+    // Find the group key for this progression
+    let groupKey = prog.title.charAt(0);
+    if ((groupKey === 'b' || groupKey === '#') && prog.title.length > 1) {
+        groupKey = prog.title.substring(0, 2);
+    }
+    
+    // Store current state and show edit form
+    const editFormId = `edit-form-${index}`;
+    const editHtml = `
+        <div id="${editFormId}" class="inline-edit-form">
             <input type="text" class="inline-title" value="${escapeHtml(prog.title)}" id="edit-title-${index}" placeholder="Title" />
             <textarea class="inline-content" id="edit-content-${index}" placeholder="Content">${escapeHtml(prog.content)}</textarea>
             <div class="note-controls">
@@ -177,6 +175,13 @@ function startInlineEdit(index) {
             </div>
         </div>
     `;
+    
+    // Insert edit form before the group box
+    const encodedGroupKey = encodeGroupKey(groupKey);
+    const groupBox = document.querySelector(`[id="group-${encodedGroupKey}"]`).parentElement;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = editHtml;
+    groupBox.parentElement.insertBefore(tempDiv.firstElementChild, groupBox);
 }
 
 function saveInlineEdit(index) {
@@ -215,7 +220,8 @@ function startGroupEdit(groupKey) {
     if (!isOwnerMode()) return;
     
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
-    const progContainer = document.getElementById(`group-${groupKey}`);
+    const encodedKey = encodeGroupKey(groupKey);
+    const progContainer = document.getElementById(`group-${encodedKey}`);
     
     // Filter progressions that belong to this group
     const groupProgresses = progs.filter(p => {
@@ -225,61 +231,132 @@ function startGroupEdit(groupKey) {
         return isSingleChar || isTwoChar;
     });
     
-    let html = '';
-    groupProgresses.forEach((prog, idx) => {
+    const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
+    const currentGroupName = customNames[groupKey] || groupKey;
+    
+    let html = `
+        <div class="group-edit-form">
+            <div class="group-name-edit">
+                <label>Group Name:</label>
+                <input type="text" id="group-name-edit" value="${escapeHtml(currentGroupName)}" placeholder="Group name" />
+            </div>
+    `;
+    
+    groupProgresses.forEach((prog) => {
         const origIndex = progs.indexOf(prog);
+        const combinedContent = prog.title + '\n' + prog.content;
         html += `
             <div class="progression-edit-row" id="edit-row-${origIndex}">
-                <input type="text" class="group-edit-title" value="${escapeHtml(prog.title)}" id="group-title-${origIndex}" />
-                <textarea class="group-edit-content" id="group-content-${origIndex}">${escapeHtml(prog.content)}</textarea>
+                <textarea class="group-edit-combined" id="group-content-${origIndex}" placeholder="Title (first line) and Content (rest)">${escapeHtml(combinedContent)}</textarea>
+                <button class="prog-delete-btn" onclick="removeEditRow(${origIndex})">Remove</button>
             </div>
         `;
     });
     
     html += `
+        <div class="add-new-section">
+            <button class="add-new-btn" onclick="addNewProgressionRow('${groupKey}')">+ Add New</button>
+        </div>
         <div class="group-edit-controls">
             <button class="group-edit-save" onclick="saveGroupEdit('${groupKey}')">Save All</button>
             <button class="group-edit-cancel" onclick="cancelGroupEdit('${groupKey}')">Cancel</button>
+        </div>
         </div>
     `;
     
     progContainer.innerHTML = html;
 }
 
+function addNewProgressionRow(groupKey) {
+    const form = document.querySelector('.group-edit-form');
+    const addNewSection = form.querySelector('.add-new-section');
+    const newId = 'new-' + Date.now();
+    
+    const newRow = document.createElement('div');
+    newRow.className = 'progression-edit-row';
+    newRow.id = 'edit-row-' + newId;
+    newRow.innerHTML = `
+        <textarea class="group-edit-combined" id="group-content-${newId}" placeholder="Title (first line) and Content (rest)"></textarea>
+        <button class="prog-delete-btn" onclick="removeEditRow('${newId}')">Remove</button>
+    `;
+    
+    form.insertBefore(newRow, addNewSection);
+}
+
+function removeEditRow(id) {
+    const row = document.getElementById('edit-row-' + id);
+    if (row) {
+        row.remove();
+    }
+}
+
 function saveGroupEdit(groupKey) {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
+    const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
     
-    // Filter progressions in this group
-    const groupProgresses = progs.filter(p => {
-        const firstChar = p.title.charAt(0);
-        const isSingleChar = firstChar === groupKey;
-        const isTwoChar = groupKey.length === 2 && p.title.substring(0, 2) === groupKey;
-        return isSingleChar || isTwoChar;
-    });
-    
-    let valid = true;
-    groupProgresses.forEach((prog) => {
-        const origIndex = progs.indexOf(prog);
-        const title = document.getElementById(`group-title-${origIndex}`).value.trim();
-        const content = document.getElementById(`group-content-${origIndex}`).value.trim();
-        
-        if (!content) {
-            valid = false;
-        }
-        
-        if (valid) {
-            // Keep original title for grouping if new title is empty
-            const finalTitle = title || prog.title;
-            progs[origIndex] = { title: finalTitle, content, displayTitle: title };
-        }
-    });
-    
-    if (!valid) {
-        alert('Please fill in content!');
-        return;
+    // Save group name if changed
+    const newGroupName = document.getElementById('group-name-edit').value.trim();
+    if (newGroupName !== '') {
+        customNames[groupKey] = newGroupName;
+    } else {
+        delete customNames[groupKey];
     }
     
+    // Get all edit rows
+    const editRows = document.querySelectorAll('.progression-edit-row');
+    let rowIndices = new Set();
+    let newProgressions = [];
+    
+    editRows.forEach((row) => {
+        const rowId = row.id.replace('edit-row-', '');
+        const combinedInput = row.querySelector('.group-edit-combined');
+        
+        const combinedText = combinedInput.value.trim();
+        if (!combinedText) return;
+        
+        // Split by first newline: title is first line, content is rest
+        const lines = combinedText.split('\n');
+        const title = lines[0].trim();
+        const content = lines.slice(1).join('\n').trim();
+        
+        if (title && content) {
+            if (rowId.startsWith('new-')) {
+                // New progression
+                newProgressions.push({ title, content, displayTitle: '' });
+            } else {
+                // Existing progression - mark as kept
+                const origIndex = parseInt(rowId);
+                rowIndices.add(origIndex);
+                progs[origIndex] = { 
+                    title: title, 
+                    content: content, 
+                    displayTitle: title
+                };
+            }
+        }
+    });
+    
+    // Remove progressions that were deleted (rows that don't exist anymore)
+    // Go through existing progressions in this group and remove ones not in rowIndices
+    for (let i = progs.length - 1; i >= 0; i--) {
+        const prog = progs[i];
+        const firstChar = prog.title.charAt(0);
+        const isSingleChar = firstChar === groupKey;
+        const isTwoChar = groupKey.length === 2 && prog.title.substring(0, 2) === groupKey;
+        
+        if ((isSingleChar || isTwoChar) && !rowIndices.has(i)) {
+            // This progression belongs to the group but wasn't in the edit form, so delete it
+            progs.splice(i, 1);
+        }
+    }
+    
+    // Add new progressions to the end
+    newProgressions.forEach(prog => {
+        progs.push(prog);
+    });
+    
     localStorage.setItem('musicProgressions', JSON.stringify(progs));
+    localStorage.setItem('groupCustomNames', JSON.stringify(customNames));
     loadProgressions();
 }
 

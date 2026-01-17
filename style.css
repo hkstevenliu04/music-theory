@@ -120,7 +120,15 @@ main {
 }
 
 .progression-title-row {
-    margin-bottom: 10px;
+    margin-bottom: 3px;
+}
+
+.progression-title-inline {
+    color: #00ff99;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 8px 0 2px 0;
+    padding: 0;
 }
 
 .progressions-list {
@@ -135,16 +143,16 @@ main {
 .group-header h2 {
     color: #00d4ff;
     padding-bottom: 10px;
-    border-bottom: 2px solid #00d4ff;
+    border-bottom: none;
 }
 
 .group-box {
     padding: 20px;
     margin-bottom: 30px;
-    border: 2px solid #00d4ff;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+    border: 1px solid #00d4ff;
+    background: #1a1a1a;
+    border-radius: 5px;
+    box-shadow: none;
 }
 
 .group-title {
@@ -159,22 +167,22 @@ main {
     display: flex;
     flex-direction: column;
     gap: 0;
-    background: #1a1a1a;
-    border: 1px solid #00d4ff;
-    border-radius: 5px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     padding: 0;
 }
 
-.progression-in-box {
-    background: transparent;
-    border: none;
-    border-left: none;
-    border-bottom: 1px solid #00d4ff;
-    padding: 12px;
-    border-radius: 0;
+.progressions-in-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+}
+
+.group-content-box {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .prog-edit-btn-container {
@@ -197,20 +205,19 @@ main {
     filter: brightness(0.9);
 }
 
-.progression-in-box:last-child {
-    border-bottom: none;
-}
-
-.progression-in-box h3 {
-    color: #00ff99;
-    font-size: 1.4em;
-    margin-bottom: 6px;
-}
-
-.progression-in-box .progression-notes {
+.progression-notes {
     color: #e0e0e0;
     font-size: 1.3em;
     margin: 0;
+}
+
+.styled-text {
+    color: #00ff99;
+    font-weight: bold;
+    font-size: 1.15em;
+    background: rgba(0, 255, 153, 0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
 }
 
 .clickable-line {
@@ -331,6 +338,14 @@ main {
     filter: brightness(0.9);
 }
 
+.group-edit-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+}
+
 .progression-edit-row {
     margin-bottom: 15px;
     padding: 10px;
@@ -386,6 +401,68 @@ main {
     border-top: 2px solid #00d4ff;
 }
 
+.group-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.group-name-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+}
+
+.group-name-edit label {
+    color: #00ff99;
+    font-weight: bold;
+}
+
+.group-name-edit input {
+    background: #2d2d2d;
+    color: #fff;
+    border: 1px solid #00d4ff;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+.progression-edit-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    background: #0d0d0d;
+    border-left: 3px solid #00d4ff;
+}
+
+.progression-edit-row input,
+.progression-edit-row textarea {
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 6px;
+    border-radius: 3px;
+    font-family: inherit;
+}
+
+.progression-edit-row input {
+    font-size: 0.95em;
+}
+
+.progression-edit-row textarea,
+.progression-edit-row .group-edit-combined {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.progression-edit-row label {
+    color: #00ff99;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
 .group-edit-save {
     background: #00ff99;
     color: #000;
@@ -412,6 +489,46 @@ main {
 
 .group-edit-cancel:hover {
     background: #555;
+}
+
+.add-new-section {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+    padding: 10px 0;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
+}
+
+.add-new-btn {
+    background: #00d4ff;
+    color: #000;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95em;
+}
+
+.add-new-btn:hover {
+    filter: brightness(0.85);
+}
+
+.prog-delete-btn {
+    background: #ff6b6b;
+    color: #fff;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+.prog-delete-btn:hover {
+    filter: brightness(0.9);
 }
 
 .group-edit-delete {
