@@ -161,11 +161,8 @@ function loadProgressions() {
                 contentLines.forEach((line, lineIdx) => {
                     // Parse **text** for styled sections
                     const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="styled-text">$1</span>');
-                    // Only make lines with content clickable
-                    const hasContent = line.trim().length > 0;
-                    const clickableClass = hasContent ? 'clickable-line' : '';
                     allContent += `
-                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex}, ${lineIdx})"` : ''}>${styledLine}</p>
+                        <p class="progression-notes">${styledLine}</p>
                     `;
                 });
             });
