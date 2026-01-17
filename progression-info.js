@@ -87,6 +87,7 @@ function deleteDetailProgression() {
 function loadDetailView() {
     // Update the header title with the clicked line
     const titleToShow = currentLineTitle || 'Unknown';
+    console.log('Setting title to:', titleToShow); // Debug
     document.getElementById('progressionTitle').textContent = escapeHtml(titleToShow);
     
     // Show edit button only in owner mode
@@ -130,7 +131,9 @@ function loadDetailView() {
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const lineTitle = params.get('lineTitle');
+    let lineTitle = params.get('lineTitle');
+    
+    console.log('URL params:', { id, lineTitle }); // Debug
     
     if (id === null) {
         document.getElementById('detailContent').innerHTML = '<p>No progression selected.</p>';
@@ -138,7 +141,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     currentProgId = parseInt(id);
-    currentLineTitle = lineTitle || '';
+    currentLineTitle = lineTitle ? decodeURIComponent(lineTitle) : '';
+    console.log('Set currentLineTitle to:', currentLineTitle); // Debug
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
     const prog = progs[currentProgId];
     
