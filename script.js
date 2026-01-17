@@ -131,7 +131,6 @@ function loadProgressions() {
             // Make title editable if owner mode
             if (isOwnerMode()) {
                 titleBox.style.cursor = 'pointer';
-                titleBox.ondblclick = () => editGroupTitle(key);
             }
             
             groupBox.appendChild(titleBox);
