@@ -140,8 +140,14 @@ main {
     gap: 2px;
     align-items: flex-start;
     overflow-x: auto;
-    padding-bottom: 10px;
+    overflow-y: hidden;
+    padding-bottom: 0px;
     line-height: 0;
+    scrollbar-width: none;
+}
+
+.progressions-list::-webkit-scrollbar {
+    display: none;
 }
 
 .group-header {
@@ -232,10 +238,12 @@ main {
 }
 
 .group-content-container.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin-top: 0;
-    border: none;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    margin-top: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    visibility: hidden;
 }
 
 .progressions-in-group {
