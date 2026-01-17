@@ -82,12 +82,12 @@ function deleteDetailProgression() {
 function loadDetailView() {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[currentProgId];
+    const sectionLabels = ['Skill', 'Song'];
     
     // Update the header title with the section label based on clicked line index
     const params = new URLSearchParams(window.location.search);
-    const lineIdx = params.get('lineIdx');
-    const sectionLabels = ['Skill', 'Song'];
-    const mainTitle = lineIdx !== null ? sectionLabels[lineIdx % sectionLabels.length] : (prog.title || 'Unknown');
+    const lineIdx = parseInt(params.get('lineIdx'));
+    const mainTitle = !isNaN(lineIdx) && lineIdx < sectionLabels.length ? sectionLabels[lineIdx] : (prog.title || 'Unknown');
     document.getElementById('progressionTitle').textContent = escapeHtml(mainTitle);
     
     // Show edit button only in owner mode
@@ -100,7 +100,6 @@ function loadDetailView() {
     
     // Organize content lines with labels only if multiple lines
     const contentLines = prog.content.split('\n').filter(l => l.trim());
-    const sectionLabels = ['Skill', 'Song'];
     
     let sectionsHtml = '';
     
@@ -108,15 +107,19 @@ function loadDetailView() {
         // Single line - no section label needed
         sectionsHtml = `<p class="detail-line">${escapeHtml(contentLines[0])}</p>`;
     } else {
-        // Multiple lines - add section labels
+        // Multiple lines - add section labels (no cycling, only use available labels)
         contentLines.forEach((line, idx) => {
-            const label = sectionLabels[idx % sectionLabels.length];
-            sectionsHtml += `
-                <div class="detail-section">
-                    <h3 class="section-label">${label}</h3>
-                    <p class="detail-line">${escapeHtml(line)}</p>
-                </div>
-            `;
+            const label = idx < sectionLabels.length ? sectionLabels[idx] : null;
+            if (label) {
+                sectionsHtml += `
+                    <div class="detail-section">
+                        <h3 class="section-label">${label}</h3>
+                        <p class="detail-line">${escapeHtml(line)}</p>
+                    </div>
+                `;
+            } else {
+                sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
+            }
         });
     }
     
