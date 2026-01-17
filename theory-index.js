@@ -114,7 +114,8 @@ function loadTheories() {
         }
         
         let contentHtml = '';
-        lines.forEach(line => {
+        // Skip the first line (title) and only show the rest as content
+        lines.slice(1).forEach(line => {
             const escapedLine = escapeHtml(line);
             const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
             contentHtml += `<p class="theory-card-line">${styledLine}</p>`;
