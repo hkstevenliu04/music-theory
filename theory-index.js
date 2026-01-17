@@ -193,9 +193,16 @@ function loadTheories() {
         const mainLines = parsed.mainContent.split('\n');
         mainLines.forEach(line => {
             if (line.trim()) {
-                const escapedLine = escapeHtml(line);
-                const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                let styledLine = line.replace(/<(.*?)>/g, '\uE000HIGHLIGHT$1HIGHLIGHT\uE001');
+                styledLine = styledLine.replace(/^\u25cf\s*/, '\uE000BULLET\uE001');
+                const escapedLine = escapeHtml(styledLine);
+                styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                styledLine = styledLine.replace(/\uE000HIGHLIGHT(.*?)HIGHLIGHT\uE001/g, '<span class="highlight-text">&lt;$1&gt;</span>');
+                styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>&nbsp;&nbsp;&nbsp;');
                 mainContentHtml += `<p class="theory-card-line">${styledLine}</p>`;
+            } else {
+                // Empty line for spacing
+                mainContentHtml += `<p class="theory-card-line" style="height: 10px; margin: 0;"></p>`;
             }
         });
         contentData[mainContentId] = mainContentHtml || '<p class="theory-card-line" style="color: #888;">No content for this section.</p>';
@@ -208,9 +215,16 @@ function loadTheories() {
             const lines = subtitle.content.split('\n');
             lines.forEach(line => {
                 if (line.trim()) {
-                    const escapedLine = escapeHtml(line);
-                    const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                    let styledLine = line.replace(/<(.*?)>/g, '\uE000HIGHLIGHT$1HIGHLIGHT\uE001');
+                    styledLine = styledLine.replace(/^\u25cf\s*/, '\uE000BULLET\uE001');
+                    const escapedLine = escapeHtml(styledLine);
+                    styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                    styledLine = styledLine.replace(/\uE000HIGHLIGHT(.*?)HIGHLIGHT\uE001/g, '<span class="highlight-text">&lt;$1&gt;</span>');
+                    styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>&nbsp;&nbsp;&nbsp;');
                     contentHtml += `<p class="theory-card-line">${styledLine}</p>`;
+                } else {
+                    // Empty line for spacing
+                    contentHtml += `<p class="theory-card-line" style="height: 10px; margin: 0;"></p>`;
                 }
             });
             
