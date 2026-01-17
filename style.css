@@ -141,6 +141,7 @@ main {
     align-items: flex-start;
     overflow-x: auto;
     padding-bottom: 10px;
+    line-height: 0;
 }
 
 .group-header {
@@ -154,7 +155,7 @@ main {
 }
 
 .group-box {
-    padding: 0;
+    padding: 0 !important;
     margin: 0 !important;
     border: none;
     background: transparent;
@@ -163,6 +164,7 @@ main {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    line-height: 0;
 }
 
 .group-title-box {
