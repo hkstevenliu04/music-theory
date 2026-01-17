@@ -8,20 +8,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Helper function to safely encode group keys for use in HTML IDs
-function encodeGroupKey(key) {
-    return key.replace(/[#b]/g, (char) => {
-        if (char === '#') return 'sharp';
-        if (char === 'b') return 'flat';
-        return char;
-    });
-}
-
-// Helper function to decode group keys back from encoded form
-function decodeGroupKey(encoded) {
-    return encoded.replace(/sharp/g, '#').replace(/flat/g, 'b');
-}
-
 // Config: enable edit UI only when viewing locally
 const EDIT_UI_ENABLED = (
     location.hostname === 'localhost' ||
@@ -147,59 +133,6 @@ function loadProgressions() {
             list.appendChild(groupBox);
         }
     });
-}
-
-function startInlineEdit(index) {
-    if (!isOwnerMode()) {
-        return; // editing disabled when not in owner mode
-    }
-    const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
-    const prog = progs[index];
-    
-    // Find the group key for this progression
-    let groupKey = prog.title.charAt(0);
-    if ((groupKey === 'b' || groupKey === '#') && prog.title.length > 1) {
-        groupKey = prog.title.substring(0, 2);
-    }
-    
-    // Store current state and show edit form
-    const editFormId = `edit-form-${index}`;
-    const editHtml = `
-        <div id="${editFormId}" class="inline-edit-form">
-            <input type="text" class="inline-title" value="${escapeHtml(prog.title)}" id="edit-title-${index}" placeholder="Title" />
-            <textarea class="inline-content" id="edit-content-${index}" placeholder="Content">${escapeHtml(prog.content)}</textarea>
-            <div class="note-controls">
-                <button class="note-edit" onclick="saveInlineEdit(${index})">Save</button>
-                <button class="note-delete" onclick="cancelInlineEdit(${index})">Cancel</button>
-                <button class="note-remove" onclick="deleteProgression(${index})">Delete</button>
-            </div>
-        </div>
-    `;
-    
-    // Insert edit form before the group box
-    const groupBox = document.querySelector(`[data-group-key="${groupKey}"]`).closest('.group-box');
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = editHtml;
-    groupBox.parentElement.insertBefore(tempDiv.firstElementChild, groupBox);
-}
-
-function saveInlineEdit(index) {
-    const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
-    const title = document.getElementById(`edit-title-${index}`).value.trim();
-    const content = document.getElementById(`edit-content-${index}`).value.trim();
-    
-    if (!title || !content) {
-        alert('Please fill in title and content!');
-        return;
-    }
-    
-    progs[index] = { title, content };
-    localStorage.setItem('musicProgressions', JSON.stringify(progs));
-    loadProgressions();
-}
-
-function cancelInlineEdit(index) {
-    loadProgressions();
 }
 
 // Delete a progression
