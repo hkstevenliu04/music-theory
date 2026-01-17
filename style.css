@@ -746,6 +746,7 @@ main {
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
+    transition: filter 0.2s ease;
 }
 
 .back-btn:hover {
