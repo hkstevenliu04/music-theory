@@ -185,8 +185,8 @@ function startGroupEdit(groupKey) {
             </div>
         </div>
         <div class="group-edit-controls">
-            <button class="group-edit-save" onclick="saveGroupEditCombined('${groupKey}')">Save All</button>
-            <button class="group-edit-cancel" onclick="cancelGroupEdit('${groupKey}')">Cancel</button>
+            <button class="group-edit-save" onclick="saveGroupEditCombined('${escapeHtml(groupKey).replace(/'/g, "\\'")}')" >Save All</button>
+            <button class="group-edit-cancel" onclick="cancelGroupEdit('${escapeHtml(groupKey).replace(/'/g, "\\'")}')" >Cancel</button>
         </div>
     `;
     
@@ -217,6 +217,7 @@ function removeEditRow(id) {
 }
 
 function saveGroupEditCombined(groupKey) {
+    console.log('Saving group:', groupKey);
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
     
@@ -237,18 +238,21 @@ function saveGroupEditCombined(groupKey) {
     
     // Split by --- on its own line to get individual progressions
     const progressionBlocks = combinedText.split(/\n---\n/).map(block => block.trim()).filter(block => block);
+    console.log('Progression blocks found:', progressionBlocks.length);
     let newProgressions = [];
     
     progressionBlocks.forEach((block) => {
         const lines = block.split('\n');
         const title = lines[0].trim();
         const content = lines.slice(1).join('\n').trim();
+        console.log('Processing progression - Title:', title, 'Content length:', content.length);
         
         if (title && content) {
             newProgressions.push({ title, content, displayTitle: title });
         }
     });
     
+    console.log('New progressions:', newProgressions.length);
     if (newProgressions.length === 0) {
         alert('Please enter at least one valid progression (Title and Content)!');
         return;
@@ -273,6 +277,7 @@ function saveGroupEditCombined(groupKey) {
     
     localStorage.setItem('musicProgressions', JSON.stringify(progs));
     localStorage.setItem('groupCustomNames', JSON.stringify(customNames));
+    console.log('Save complete');
     loadProgressions();
 }
 
