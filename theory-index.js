@@ -26,17 +26,22 @@ function startEditTheory(key) {
     
     const card = document.querySelector(`[data-theory-key="${key}"]`);
     card.innerHTML = `
-        <div class="theory-card-edit">
-            <div class="theory-edit-row">
-                <textarea class="theory-edit-theory" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.theory)}</textarea>
-            </div>
-            <div class="theory-edit-row">
-                <textarea class="theory-edit-music" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.music)}</textarea>
-            </div>
-            <div class="theory-edit-controls">
-                <button class="theory-save-btn" onclick="saveTheory('${key}')">Save</button>
-                <button class="theory-cancel-btn" onclick="cancelEditTheory('${key}')">Cancel</button>
-                <button class="theory-delete-btn" onclick="deleteTheory('${key}')">Delete</button>
+        <div class="theory-card-left">
+            <div class="theory-card-title">${escapeHtml((theoryData.theory.split('\n')[0] || 'Untitled'))}</div>
+        </div>
+        <div class="theory-card-right">
+            <div class="theory-card-edit">
+                <div class="theory-edit-row">
+                    <textarea class="theory-edit-theory" placeholder="Theory" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.theory)}</textarea>
+                </div>
+                <div class="theory-edit-row">
+                    <textarea class="theory-edit-music" placeholder="Music" style="min-height: 150px; width: 100%;">${escapeHtml(theoryData.music)}</textarea>
+                </div>
+                <div class="theory-edit-controls">
+                    <button class="theory-save-btn" onclick="saveTheory('${key}')">Save</button>
+                    <button class="theory-cancel-btn" onclick="cancelEditTheory('${key}')">Cancel</button>
+                    <button class="theory-delete-btn" onclick="deleteTheory('${key}')">Delete</button>
+                </div>
             </div>
         </div>
     `;
