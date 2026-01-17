@@ -165,7 +165,7 @@ function loadProgressions() {
                     const hasContent = line.trim().length > 0;
                     const clickableClass = hasContent ? 'clickable-line' : '';
                     allContent += `
-                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex})"` : ''}>${styledLine}</p>
+                        <p class="progression-notes ${clickableClass}" ${hasContent ? `onclick="showDetail(${prog.origIndex}, ${lineIdx})"` : ''}>${styledLine}</p>
                     `;
                 });
             });
@@ -284,9 +284,15 @@ function cancelGroupEdit(groupKey) {
 }
 
 // Show detail page for a progression
-function showDetail(index) {
-    // Navigate to progression info page with just the ID
-    const detailUrl = `progression-info.html?id=${index}`;
+function showDetail(index, lineIndex) {
+    // Navigate to progression info page with ID and the clicked line for title
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    const prog = progs[index];
+    const contentLines = prog.content.split('\n').filter(l => l.trim());
+    const lineContent = contentLines[lineIndex] || prog.title;
+    
+    const encodedContent = encodeURIComponent(lineContent);
+    const detailUrl = `progression-info.html?id=${index}&lineTitle=${encodedContent}`;
     window.location.href = detailUrl;
 }
 
