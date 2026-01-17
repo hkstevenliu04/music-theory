@@ -196,9 +196,12 @@ function loadTheories() {
                 let styledLine = line.replace(/<(.*?)>/g, '\uE000HIGHLIGHT$1HIGHLIGHT\uE001');
                 styledLine = styledLine.replace(/^\u25cf\s*/, '\uE000BULLET\uE001');
                 const escapedLine = escapeHtml(styledLine);
+                let hasBullet = styledLine.includes('\uE000BULLET\uE001');
                 styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
                 styledLine = styledLine.replace(/\uE000HIGHLIGHT(.*?)HIGHLIGHT\uE001/g, '<span class="highlight-text">&lt;$1&gt;</span>');
-                styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>&nbsp;&nbsp;&nbsp;');
+                if (hasBullet) {
+                    styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>     ');
+                }
                 mainContentHtml += `<p class="theory-card-line">${styledLine}</p>`;
             } else {
                 // Empty line for spacing
@@ -218,9 +221,12 @@ function loadTheories() {
                     let styledLine = line.replace(/<(.*?)>/g, '\uE000HIGHLIGHT$1HIGHLIGHT\uE001');
                     styledLine = styledLine.replace(/^\u25cf\s*/, '\uE000BULLET\uE001');
                     const escapedLine = escapeHtml(styledLine);
+                    let hasBullet = styledLine.includes('\uE000BULLET\uE001');
                     styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
                     styledLine = styledLine.replace(/\uE000HIGHLIGHT(.*?)HIGHLIGHT\uE001/g, '<span class="highlight-text">&lt;$1&gt;</span>');
-                    styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>&nbsp;&nbsp;&nbsp;');
+                    if (hasBullet) {
+                        styledLine = styledLine.replace(/\uE000BULLET\uE001/, '<span class="bullet-dot">●</span>     ');
+                    }
                     contentHtml += `<p class="theory-card-line">${styledLine}</p>`;
                 } else {
                     // Empty line for spacing
