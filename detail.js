@@ -83,10 +83,10 @@ function loadDetailView() {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[currentProgId];
     
-    // Update the header title with the section label from URL
+    // Update the header title with the clicked line content
     const params = new URLSearchParams(window.location.search);
-    const section = params.get('section');
-    const mainTitle = section || (prog.title || 'Unknown');
+    const content = params.get('content');
+    const mainTitle = content || (prog.title || 'Unknown');
     document.getElementById('progressionTitle').textContent = '🎵 ' + escapeHtml(mainTitle);
     
     // Show edit button only in owner mode
@@ -135,7 +135,7 @@ function loadDetailView() {
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const section = params.get('section');
+    const content = params.get('content');
     
     if (id === null) {
         document.getElementById('detailContent').innerHTML = '<p>No progression selected.</p>';

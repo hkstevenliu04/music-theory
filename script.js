@@ -325,12 +325,14 @@ function editGroupTitle(groupKey) {
 function showDetail(index, lineIndex) {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[index];
-    const sectionLabels = ['Skill', 'Song'];
-    const sectionLabel = sectionLabels[lineIndex] || prog.title;
     
-    // Create detail page URL with progression data and section label
-    const encodedLabel = encodeURIComponent(sectionLabel);
-    const detailUrl = `detail.html?id=${index}&section=${encodedLabel}`;
+    // Get the actual line content
+    const contentLines = prog.content.split('\n').filter(l => l.trim());
+    const lineContent = contentLines[lineIndex] || prog.title;
+    
+    // Create detail page URL with progression data and line content
+    const encodedContent = encodeURIComponent(lineContent);
+    const detailUrl = `detail.html?id=${index}&content=${encodedContent}`;
     window.location.href = detailUrl;
 }
 
