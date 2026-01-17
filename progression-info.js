@@ -125,7 +125,6 @@ function loadDetailView() {
         </div>
     `;
 }
-}
 
 // Load progression detail
 window.addEventListener('DOMContentLoaded', () => {
