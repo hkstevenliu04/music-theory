@@ -33,13 +33,14 @@ function startDetailEdit() {
     
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
     const prog = progs[currentProgId];
+    const detailContent = prog.detailContent || '';
     
     document.getElementById('detailContent').innerHTML = `
         <div class="detail-box">
             <div class="detail-edit-form">
                 <div class="progression-edit-row">
                     <label style="display: block; margin-bottom: 8px; color: #b0b0b0;">Edit content (use <strong>**text**</strong> to style words):</label>
-                    <textarea class="detail-edit-content" id="edit-detail-content" style="min-height: 300px;">${escapeHtml(prog.content)}</textarea>
+                    <textarea class="detail-edit-content" id="edit-detail-content" style="min-height: 300px;">${escapeHtml(detailContent)}</textarea>
                 </div>
                 <div class="detail-edit-controls">
                     <button class="detail-save-btn" onclick="saveDetailEdit()">Save</button>
@@ -55,13 +56,8 @@ function startDetailEdit() {
 function saveDetailEdit() {
     const content = document.getElementById('edit-detail-content').value.trim();
     
-    if (!content) {
-        alert('Please enter content!');
-        return;
-    }
-    
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    progs[currentProgId] = { ...progs[currentProgId], content: content };
+    progs[currentProgId] = { ...progs[currentProgId], detailContent: content };
     localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
     
     loadDetailView();
@@ -88,12 +84,10 @@ function deleteDetailProgression() {
 
 // Load and display progression detail
 function loadDetailView() {
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    const prog = progs[currentProgId];
-    
-    // Update the header title with the clicked line (from URL parameter)
     const params = new URLSearchParams(window.location.search);
-    const lineTitle = params.get('lineTitle') || prog.title;
+    const lineTitle = params.get('lineTitle') || 'Unknown';
+    
+    // Update the header title with the clicked line
     document.getElementById('progressionTitle').textContent = escapeHtml(lineTitle);
     
     // Show edit button only in owner mode
@@ -104,15 +98,24 @@ function loadDetailView() {
         controlsDiv.innerHTML = '';
     }
     
-    // Organize content lines
-    const contentLines = prog.content.split('\n').filter(l => l.trim());
+    // Get detail content from separate progression details storage
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    const prog = progs[currentProgId];
+    
+    let detailContent = '';
+    if (prog && prog.detailContent) {
+        detailContent = prog.detailContent;
+    }
     
     let sectionsHtml = '';
-    
-    // Display all lines without labels
-    contentLines.forEach((line, idx) => {
-        sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
-    });
+    if (detailContent) {
+        const contentLines = detailContent.split('\n').filter(l => l.trim());
+        contentLines.forEach((line, idx) => {
+            sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
+        });
+    } else {
+        sectionsHtml = '<p style="color: #888;">No details yet. Click edit to add content.</p>';
+    }
     
     document.getElementById('detailContent').innerHTML = `
         <div class="detail-box">
@@ -121,6 +124,7 @@ function loadDetailView() {
             </div>
         </div>
     `;
+}
 }
 
 // Load progression detail
