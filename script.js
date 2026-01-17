@@ -1,6 +1,3 @@
-// --- Progression management ---
-let editingProgIndex = null;
-
 // Helper function to prevent HTML injection
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -138,18 +135,6 @@ function loadProgressions() {
     });
 }
 
-// Delete a progression
-function deleteProgression(index) {
-    if (!isOwnerMode()) return;
-    
-    if (confirm('Are you sure you want to delete this progression?')) {
-        const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
-        progs.splice(index, 1);
-        localStorage.setItem('musicProgressions', JSON.stringify(progs));
-        loadProgressions();
-    }
-}
-
 // Group edit mode
 function startGroupEdit(groupKey) {
     if (!isOwnerMode()) return;
@@ -196,31 +181,7 @@ function startGroupEdit(groupKey) {
     progContainer.innerHTML = html;
 }
 
-function addNewProgressionRow(groupKey) {
-    const form = document.querySelector('.group-edit-form');
-    const addNewSection = form.querySelector('.add-new-section');
-    const newId = 'new-' + Date.now();
-    
-    const newRow = document.createElement('div');
-    newRow.className = 'progression-edit-row';
-    newRow.id = 'edit-row-' + newId;
-    newRow.innerHTML = `
-        <textarea class="group-edit-combined" id="group-content-${newId}" placeholder="Title (first line) and Content (rest)"></textarea>
-        <button class="prog-delete-btn" onclick="removeEditRow('${newId}')">Remove</button>
-    `;
-    
-    form.insertBefore(newRow, addNewSection);
-}
-
-function removeEditRow(id) {
-    const row = document.getElementById('edit-row-' + id);
-    if (row) {
-        row.remove();
-    }
-}
-
 function saveGroupEditCombined(groupKey) {
-    console.log('Saving group:', groupKey);
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const customNames = JSON.parse(localStorage.getItem('groupCustomNames')) || {};
     
@@ -241,7 +202,6 @@ function saveGroupEditCombined(groupKey) {
     
     // Split by --- on its own line to get individual progressions
     const progressionBlocks = combinedText.split(/\n---\n/).map(block => block.trim()).filter(block => block);
-    console.log('Progression blocks found:', progressionBlocks.length);
     let newProgressions = [];
     
     progressionBlocks.forEach((block) => {
@@ -252,18 +212,15 @@ function saveGroupEditCombined(groupKey) {
         if (lines.length === 1) {
             // Single line = content only (no title)
             const content = lines[0];
-            console.log('Processing progression - Content only:', content);
             newProgressions.push({ title: content, content: content, displayTitle: '' });
         } else {
             // Multiple lines = first is title, rest is content
             const title = lines[0];
             const content = lines.slice(1).join('\n');
-            console.log('Processing progression - Title:', title, 'Content length:', content.length);
             newProgressions.push({ title, content, displayTitle: title });
         }
     });
     
-    console.log('New progressions:', newProgressions.length);
     if (newProgressions.length === 0) {
         alert('Please enter at least one valid progression (Title and Content)!');
         return;
@@ -288,12 +245,7 @@ function saveGroupEditCombined(groupKey) {
     
     localStorage.setItem('musicProgressions', JSON.stringify(progs));
     localStorage.setItem('groupCustomNames', JSON.stringify(customNames));
-    console.log('Save complete');
     loadProgressions();
-}
-
-function saveGroupEdit(groupKey) {
-    saveGroupEditCombined(groupKey);
 }
 
 function cancelGroupEdit(groupKey) {
