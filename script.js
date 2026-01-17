@@ -19,12 +19,20 @@ function isOwnerMode() {
 
 // Toggle group content visibility
 function toggleGroupContent(key) {
+    console.log('Toggle clicked for key:', key);
     const contentContainer = document.getElementById(`group-content-${key}`);
+    console.log('Container found:', contentContainer);
     
-    if (contentContainer.classList.contains('collapsed')) {
-        contentContainer.classList.remove('collapsed');
+    if (contentContainer) {
+        if (contentContainer.classList.contains('collapsed')) {
+            contentContainer.classList.remove('collapsed');
+            console.log('Expanded:', key);
+        } else {
+            contentContainer.classList.add('collapsed');
+            console.log('Collapsed:', key);
+        }
     } else {
-        contentContainer.classList.add('collapsed');
+        console.error('Container not found for key:', key);
     }
 }
 
