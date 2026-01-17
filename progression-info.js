@@ -98,30 +98,25 @@ function loadDetailView() {
         controlsDiv.innerHTML = '';
     }
     
-    // Organize content lines with labels only if multiple lines
+    // Organize content lines with Skill and Song titles
     const contentLines = prog.content.split('\n').filter(l => l.trim());
     
     let sectionsHtml = '';
     
-    if (contentLines.length === 1) {
-        // Single line - no section label needed
-        sectionsHtml = `<p class="detail-line">${escapeHtml(contentLines[0])}</p>`;
-    } else {
-        // Multiple lines - add Skill and Song labels
-        contentLines.forEach((line, idx) => {
-            const label = idx < sectionLabels.length ? sectionLabels[idx] : null;
-            if (label) {
-                sectionsHtml += `
-                    <div class="detail-section">
-                        <h3 class="section-label">${label}</h3>
-                        <p class="detail-line">${escapeHtml(line)}</p>
-                    </div>
-                `;
-            } else {
-                sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
-            }
-        });
-    }
+    // Add Skill and Song labels for all lines
+    contentLines.forEach((line, idx) => {
+        const label = idx < sectionLabels.length ? sectionLabels[idx] : null;
+        if (label) {
+            sectionsHtml += `
+                <div class="detail-section">
+                    <h3 class="section-label">${label}</h3>
+                    <p class="detail-line">${escapeHtml(line)}</p>
+                </div>
+            `;
+        } else {
+            sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
+        }
+    });
     
     document.getElementById('detailContent').innerHTML = `
         <div class="detail-box">
