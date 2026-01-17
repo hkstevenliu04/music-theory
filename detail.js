@@ -107,19 +107,9 @@ function loadDetailView() {
         // Single line - no section label needed
         sectionsHtml = `<p class="detail-line">${escapeHtml(contentLines[0])}</p>`;
     } else {
-        // Multiple lines - add section labels (no cycling, only use available labels)
-        contentLines.forEach((line, idx) => {
-            const label = idx < sectionLabels.length ? sectionLabels[idx] : null;
-            if (label) {
-                sectionsHtml += `
-                    <div class="detail-section">
-                        <h3 class="section-label">${label}</h3>
-                        <p class="detail-line">${escapeHtml(line)}</p>
-                    </div>
-                `;
-            } else {
-                sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
-            }
+        // Multiple lines - just show content without section labels
+        contentLines.forEach((line) => {
+            sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
         });
     }
     
