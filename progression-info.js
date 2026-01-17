@@ -31,14 +31,16 @@ let currentProgId = null;
 function startDetailEdit() {
     if (!isOwnerMode()) return;
     
-    const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
     const prog = progs[currentProgId];
     
     document.getElementById('detailContent').innerHTML = `
         <div class="detail-box">
             <div class="detail-edit-form">
-                <input type="text" class="detail-edit-title" value="${escapeHtml(prog.title)}" id="edit-detail-title" />
-                <textarea class="detail-edit-content" id="edit-detail-content">${escapeHtml(prog.content)}</textarea>
+                <div class="progression-edit-row">
+                    <label style="display: block; margin-bottom: 8px; color: #b0b0b0;">Edit content (use <strong>**text**</strong> to style words):</label>
+                    <textarea class="detail-edit-content" id="edit-detail-content" style="min-height: 300px;">${escapeHtml(prog.content)}</textarea>
+                </div>
                 <div class="detail-edit-controls">
                     <button class="detail-save-btn" onclick="saveDetailEdit()">Save</button>
                     <button class="detail-cancel-btn" onclick="cancelDetailEdit()">Cancel</button>
@@ -51,16 +53,15 @@ function startDetailEdit() {
 
 // Save detail edit
 function saveDetailEdit() {
-    const title = document.getElementById('edit-detail-title').value.trim();
     const content = document.getElementById('edit-detail-content').value.trim();
     
-    if (!title || !content) {
-        alert('Please fill in title and content!');
+    if (!content) {
+        alert('Please enter content!');
         return;
     }
     
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    progs[currentProgId] = { title, content };
+    progs[currentProgId] = { ...progs[currentProgId], content: content };
     localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
     
     loadDetailView();
