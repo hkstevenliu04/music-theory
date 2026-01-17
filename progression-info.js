@@ -111,7 +111,10 @@ function loadDetailView() {
     if (detailContent) {
         const contentLines = detailContent.split('\n').filter(l => l.trim());
         contentLines.forEach((line, idx) => {
-            sectionsHtml += `<p class="detail-line">${escapeHtml(line)}</p>`;
+            // Escape first, then parse **text** for styled sections
+            const escapedLine = escapeHtml(line);
+            const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="styled-text">$1</span>');
+            sectionsHtml += `<p class="detail-line">${styledLine}</p>`;
         });
     } else {
         sectionsHtml = '<p style="color: #888;">No details yet. Click edit to add content.</p>';
