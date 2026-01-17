@@ -83,10 +83,11 @@ function loadDetailView() {
     const progs = JSON.parse(localStorage.getItem('musicProgressions')) || [];
     const prog = progs[currentProgId];
     
-    // Update the header title with the clicked line (or fall back to progression title)
+    // Update the header title with the section label based on clicked line index
     const params = new URLSearchParams(window.location.search);
-    const clickedLine = params.get('line');
-    const mainTitle = clickedLine || prog.title || 'Unknown';
+    const lineIdx = params.get('lineIdx');
+    const sectionLabels = ['Skill', 'Song'];
+    const mainTitle = lineIdx !== null ? sectionLabels[lineIdx % sectionLabels.length] : (prog.title || 'Unknown');
     document.getElementById('progressionTitle').textContent = escapeHtml(mainTitle);
     
     // Show edit button only in owner mode
@@ -99,7 +100,7 @@ function loadDetailView() {
     
     // Organize content lines with labels only if multiple lines
     const contentLines = prog.content.split('\n').filter(l => l.trim());
-    const sectionLabels = ['Variation', 'Song'];
+    const sectionLabels = ['Skill', 'Song'];
     
     let sectionsHtml = '';
     
@@ -132,7 +133,7 @@ function loadDetailView() {
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const clickedLine = params.get('line');
+    const lineIdx = params.get('lineIdx');
     
     if (id === null) {
         document.getElementById('detailContent').innerHTML = '<p>No progression selected.</p>';
