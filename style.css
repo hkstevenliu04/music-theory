@@ -312,7 +312,7 @@ main {
 .group-content-container::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 4px;
-    transition: background 1s ease;
+    transition: background 2s ease;
 }
 
 .group-content-container.scrolling::-webkit-scrollbar-thumb {
