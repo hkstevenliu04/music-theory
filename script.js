@@ -171,7 +171,7 @@ function startGroupEdit(groupKey) {
         const origIndex = progs.indexOf(prog);
         combinedAllContent += prog.title + '\n' + prog.content + '\n---\n';
     });
-    combinedAllContent = combinedAllContent.slice(0, -5); // Remove last --- separator
+    combinedAllContent = combinedAllContent.slice(0, -4); // Remove last \n---\n
     
     let html = `
         <div class="group-edit-form">
@@ -180,8 +180,8 @@ function startGroupEdit(groupKey) {
                 <input type="text" id="group-name-edit" value="${escapeHtml(currentGroupName)}" placeholder="Group name" />
             </div>
             <div class="progression-edit-row">
-                <label style="display: block; margin-bottom: 8px; color: #b0b0b0;">Edit all progressions (separate each with ---):</label>
-                <textarea class="group-edit-combined" id="group-content-all" placeholder="Title\\nContent\\n---\\nTitle\\nContent" style="min-height: 300px;">${escapeHtml(combinedAllContent)}</textarea>
+                <label style="display: block; margin-bottom: 8px; color: #b0b0b0;">Edit all progressions (put --- on its own line to separate each):</label>
+                <textarea class="group-edit-combined" id="group-content-all" placeholder="Title\nContent\n---\nTitle\nContent" style="min-height: 300px;">${escapeHtml(combinedAllContent)}</textarea>
             </div>
         </div>
         <div class="group-edit-controls">
@@ -235,8 +235,8 @@ function saveGroupEditCombined(groupKey) {
         return;
     }
     
-    // Split by --- to get individual progressions
-    const progressionBlocks = combinedText.split('---').map(block => block.trim()).filter(block => block);
+    // Split by --- on its own line to get individual progressions
+    const progressionBlocks = combinedText.split(/\n---\n/).map(block => block.trim()).filter(block => block);
     let newProgressions = [];
     
     progressionBlocks.forEach((block) => {
