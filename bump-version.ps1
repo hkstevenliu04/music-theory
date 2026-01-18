@@ -62,11 +62,11 @@ if (Test-Path $firstFile) {
     $updatedCount = 0
     foreach ($file in $htmlFiles) {
         if (Test-Path $file) {
-            $content = Get-Content $file -Raw
+            $content = Get-Content $file -Raw -Encoding UTF8
             $updatedContent = $content -replace "\?v=$currentVersion", "?v=$newVersion"
             
             if ($updatedContent -ne $content) {
-                Set-Content $file $updatedContent
+                Set-Content $file $updatedContent -Encoding UTF8
                 Write-Host "[+] Updated $file"
                 $updatedCount++
             }
