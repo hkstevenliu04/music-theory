@@ -69,19 +69,11 @@ function autoSaveData() {
     navigator.sendBeacon('/api/save-data', JSON.stringify(data));
 }
 
-let autoSaveTimeout;
-function debouncedAutoSave() {
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(autoSaveData, 2000);
-}
+// Only save when leaving page (minimal impact)
+window.addEventListener('beforeunload', autoSaveData);
 
-// Auto-save on changes (debounced)
-document.addEventListener('change', debouncedAutoSave);
-document.addEventListener('input', debouncedAutoSave);
-document.addEventListener('click', debouncedAutoSave);
-
-// Also save every 2 minutes
-setInterval(autoSaveData, 120000);
+// Save every 3 minutes (low frequency)
+setInterval(autoSaveData, 180000);
 
 // Also save on page unload
 window.addEventListener('beforeunload', autoSaveData);
