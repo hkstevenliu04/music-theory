@@ -112,6 +112,7 @@ main {
     padding: 30px;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .content-area {
@@ -1030,9 +1031,9 @@ main {
 }
 
 .detail-controls {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+    position: absolute;
+    top: 30px;
+    right: 30px;
     z-index: 100;
 }
 
