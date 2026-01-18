@@ -83,16 +83,13 @@ function moveTheoryUp(key) {
     const currentIndex = keys.indexOf(key);
     if (currentIndex <= 0) return;
     
-    // Swap order by recreating object with swapped keys
+    // Swap positions in the array
+    [keys[currentIndex - 1], keys[currentIndex]] = [keys[currentIndex], keys[currentIndex - 1]];
+    
+    // Rebuild object with new order
     const newTheory = {};
     keys.forEach(k => {
-        if (k === keys[currentIndex - 1]) {
-            newTheory[keys[currentIndex]] = musicTheory[k];
-        } else if (k === keys[currentIndex]) {
-            newTheory[keys[currentIndex - 1]] = musicTheory[k];
-        } else {
-            newTheory[k] = musicTheory[k];
-        }
+        newTheory[k] = musicTheory[k];
     });
     
     localStorage.setItem('musicTheory', JSON.stringify(newTheory));
@@ -116,16 +113,13 @@ function moveTheoryDown(key) {
     const currentIndex = keys.indexOf(key);
     if (currentIndex >= keys.length - 1) return;
     
-    // Swap order by recreating object with swapped keys
+    // Swap positions in the array
+    [keys[currentIndex], keys[currentIndex + 1]] = [keys[currentIndex + 1], keys[currentIndex]];
+    
+    // Rebuild object with new order
     const newTheory = {};
     keys.forEach(k => {
-        if (k === keys[currentIndex]) {
-            newTheory[keys[currentIndex + 1]] = musicTheory[k];
-        } else if (k === keys[currentIndex + 1]) {
-            newTheory[keys[currentIndex]] = musicTheory[k];
-        } else {
-            newTheory[k] = musicTheory[k];
-        }
+        newTheory[k] = musicTheory[k];
     });
     
     localStorage.setItem('musicTheory', JSON.stringify(newTheory));
