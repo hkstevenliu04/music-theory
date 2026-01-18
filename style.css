@@ -1041,11 +1041,10 @@ main {
 
 .progression-controls {
     position: fixed;
-    top: 0;
-    right: 0;
+    top: 15px;
+    right: 15px;
     z-index: 9999;
     overflow: visible;
-    padding: 20px;
 }
 
 .edit-icon {
