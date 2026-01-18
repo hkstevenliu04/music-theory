@@ -1032,10 +1032,11 @@ main {
 
 .detail-controls {
     position: fixed;
-    top: 20px;
-    right: 30px;
-    z-index: 100;
+    top: 0;
+    right: 0;
+    z-index: 9999;
     overflow: visible;
+    padding: 20px;
 }
 
 .edit-icon {
