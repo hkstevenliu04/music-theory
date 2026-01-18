@@ -20,6 +20,29 @@ function migrateOldContent() {
     }
 }
 
+// Fix theory name typos
+function fixTheoryNameTypos() {
+    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
+    let needsSave = false;
+    
+    for (const key in progressionDetails) {
+        const item = progressionDetails[key];
+        const theoryObj = typeof item === 'string' ? { theory: item } : item;
+        if (theoryObj && theoryObj.theory) {
+            // Fix "Chromatic Descenting" -> "Chromatic Descent"
+            if (theoryObj.theory.includes('[ Chromatic Descenting ]')) {
+                theoryObj.theory = theoryObj.theory.replace(/\[ Chromatic Descenting \]/g, '[ Chromatic Descent ]');
+                progressionDetails[key] = theoryObj;
+                needsSave = true;
+            }
+        }
+    }
+    
+    if (needsSave) {
+        localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
+    }
+}
+
 // Initialize sample music theory data if empty (for testing)
 function initializeSampleTheoryData() {
     const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
@@ -49,6 +72,7 @@ A melodic line moving down by semitones`,
 
 // Call initialization
 migrateOldContent();
+fixTheoryNameTypos();
 initializeSampleTheoryData();
 
 // Check owner mode
@@ -375,22 +399,21 @@ function showTheoryTooltip(lineTitle, event) {
     hideTheoryTooltip();
     
     const theoryName = lineTitle.trim();
-
     
     // Get theory definition from Music Theory page storage
     const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
-
+    
+    console.log('Looking for theory:', theoryName);
+    console.log('Available keys:', Object.keys(musicTheory));
     
     // Try to find exact match first
     let theoryData = musicTheory[theoryName];
-
     
     // If not found, try case-insensitive search
     if (!theoryData) {
-
         for (const key in musicTheory) {
             if (key.toLowerCase() === theoryName.toLowerCase()) {
-
+                console.log('Found case-insensitive match:', key);
                 theoryData = musicTheory[key];
                 break;
             }
@@ -398,13 +421,12 @@ function showTheoryTooltip(lineTitle, event) {
     }
     
     if (!theoryData) {
-
+        console.log('No theory data found for:', theoryName);
         return;
     }
     
     const theory = typeof theoryData === 'string' ? theoryData : (theoryData.theory || '');
     if (!theory.trim()) {
-
         return;
     }
     
