@@ -708,6 +708,9 @@ function loadTheoryList() {
 
 // Load theories when page starts
 window.addEventListener('DOMContentLoaded', () => {
-    loadTheories();
+    // Add a small delay to let autoRestoreFromBackup() complete (it runs in script.js)
+    setTimeout(() => {
+        loadTheories();
+    }, 100);
 });
 
