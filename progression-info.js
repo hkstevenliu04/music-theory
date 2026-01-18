@@ -38,35 +38,6 @@ A sustained, repeated low note, usually in the bass, over which the harmony chan
             music: ''
         };
     }
-    
-    // Ensure Chromatic theory exists with subtitles
-    if (!musicTheory['Chromatic']) {
-        musicTheory['Chromatic'] = {
-            theory: `Chromatic
-- Chromatic Descending
-< Info >
-Movement down through semitones
-- Chromatic Ascending
-< Info >
-Movement up through semitones
-- Chromatic Descenting
-< Info >
-The progressive descending motion through chromatic notes`,
-            music: ''
-        };
-    }
-    
-    // Ensure Chromatic Descent exists (legacy)
-    if (!musicTheory['Chromatic Descent']) {
-        musicTheory['Chromatic Descent'] = {
-            theory: `Chromatic Descent
-< Info >
-A melodic line moving down by semitones`,
-            music: ''
-        };
-    }
-    
-    localStorage.setItem('musicTheory', JSON.stringify(musicTheory));
 }
 
 // Call initialization
