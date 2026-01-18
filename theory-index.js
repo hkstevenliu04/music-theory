@@ -310,12 +310,14 @@ function loadTheories() {
     
     // Get stored order or use object keys
     let theoryOrder = JSON.parse(localStorage.getItem('theoryOrder')) || [];
+    console.log('loadTheories - theoryOrder from storage:', theoryOrder);
     
     // Filter entries that have theory content, respecting theoryOrder
     let theoriesWithContent = [];
     
     // If we have a stored order, use it
     if (theoryOrder.length > 0) {
+        console.log('Using stored theoryOrder');
         theoriesWithContent = theoryOrder
             .filter(key => musicTheory[key])
             .filter(key => {
@@ -328,7 +330,9 @@ function loadTheories() {
                 const theoryData = typeof data === 'string' ? { theory: data, music: '' } : data;
                 return { key, ...theoryData };
             });
+        console.log('theoriesWithContent keys:', theoriesWithContent.map(t => t.key));
     } else {
+        console.log('No stored theoryOrder, using Object.entries fallback');
         // Fallback to object entries if no stored order
         theoriesWithContent = Object.entries(musicTheory)
             .filter(([key, data]) => {
@@ -342,6 +346,7 @@ function loadTheories() {
         
         // Save the order for future use
         theoryOrder = theoriesWithContent.map(t => t.key);
+        console.log('Saving new theoryOrder:', theoryOrder);
         localStorage.setItem('theoryOrder', JSON.stringify(theoryOrder));
         if (typeof db !== 'undefined' && db.ready) {
             db.set('theoryOrder', 'default', theoryOrder).catch(() => {});
