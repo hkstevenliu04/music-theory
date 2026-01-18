@@ -49,6 +49,42 @@ const STORAGE_KEYS = {
     SITE_DESCRIPTION: 'siteDescription'
 };
 
+// Auto-restore data from JSON file on page load if localStorage is empty
+function autoRestoreFromBackup() {
+    const hasProgressions = localStorage.getItem(STORAGE_KEYS.PROGRESSIONS);
+    const hasTheories = localStorage.getItem('musicTheory');
+    
+    // If data exists, don't restore
+    if (hasProgressions && hasTheories) {
+        return;
+    }
+    
+    // Try to restore from backup JSON file
+    fetch('music-theory-data.json')
+        .then(response => response.json())
+        .then(data => {
+            if (data.progressions) {
+                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, data.progressions);
+            }
+            if (data.progressionDetails) {
+                localStorage.setItem('progressionDetails', data.progressionDetails);
+            }
+            if (data.musicTheory) {
+                localStorage.setItem('musicTheory', data.musicTheory);
+            }
+            if (data.theoryOrder) {
+                localStorage.setItem('theoryOrder', data.theoryOrder);
+            }
+            if (data.groupNames) {
+                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, data.groupNames);
+            }
+            console.log('✓ Data restored from backup');
+        })
+        .catch(err => {
+            console.debug('No backup found or failed to restore');
+        });
+}
+
 // Auto-save functionality - saves data every 3 minutes
 function autoSaveData() {
     const data = {
@@ -443,6 +479,9 @@ function showDetail(index, lineContent) {
 
 // Load progressions when page starts (only on chord-progressions page)
 window.addEventListener('DOMContentLoaded', () => {
+    // Auto-restore from backup JSON on page load
+    autoRestoreFromBackup();
+    
     // Auto-recover progression details from IndexedDB if localStorage is empty
     let progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
     if (Object.keys(progressionDetails).length === 0 && typeof db !== 'undefined' && db.ready) {
