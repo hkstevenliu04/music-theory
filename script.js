@@ -359,6 +359,12 @@ function loadProgressions() {
     initializeProgressions();
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
 
+    // Hide detail-controls on this page
+    const detailControls = document.getElementById('detailControls');
+    if (detailControls) {
+        detailControls.style.display = 'none';
+    }
+
     // Show edit button if in owner mode (for chord progression page)
     const progressionControls = document.getElementById('progressionControls');
     if (progressionControls) {
