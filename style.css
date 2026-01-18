@@ -1031,20 +1031,19 @@ main {
 }
 
 .detail-controls {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 9999;
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    z-index: 100;
     overflow: visible;
-    padding: 20px;
     display: none;
 }
 
 .progression-controls {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 9999;
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    z-index: 100;
     overflow: visible;
 }
 
