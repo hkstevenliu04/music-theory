@@ -184,6 +184,9 @@ function manualSaveData() {
 // Config: owner mode based on localStorage
 // Initialized above with STORAGE_KEYS.OWNER_MODE check
 
+// Track currently open group for accordion
+let currentOpenGroup = null;
+
 // Owner mode detection based on localStorage flag
 function isOwnerMode() {
     return EDIT_UI_ENABLED;
