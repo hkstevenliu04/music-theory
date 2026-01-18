@@ -101,37 +101,41 @@ function startDetailEdit() {
     if (!isOwnerMode() || isEditingDetail) return;
     isEditingDetail = true;
     
-    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
-    // Use currentUniqueKey which has format: progIndex:lineTitle
-    const keyToUse = currentUniqueKey || currentLineTitle;
-    const detailData = progressionDetails[keyToUse] || { theory: '', music: '', genre: '' };
-    
-
-
-    
-    document.getElementById('detailContent').innerHTML = `
-        <div class="detail-box">
-            <div class="detail-edit-form">
-                <div class="progression-edit-row">
-                    <label>Theory:</label>
-                    <textarea class="detail-edit-theory" name="theory" id="detail-edit-theory" style="min-height: 150px;">${escapeHtml(detailData.theory || '')}</textarea>
-                </div>
-                <div class="progression-edit-row">
-                    <label>Music:</label>
-                    <textarea class="detail-edit-music" name="music" id="detail-edit-music" style="min-height: 150px;">${escapeHtml(detailData.music || '')}</textarea>
-                </div>
-                <div class="progression-edit-row">
-                    <label>Genre:</label>
-                    <textarea class="detail-edit-genre" name="genre" id="detail-edit-genre" style="min-height: 150px;">${escapeHtml(detailData.genre || '')}</textarea>
-                </div>
-                <div class="detail-edit-controls">
-                    <button class="detail-save-btn" onclick="saveDetailEdit()">Save</button>
-                    <button class="detail-cancel-btn" onclick="cancelDetailEdit()">Cancel</button>
-                    <button class="detail-delete-btn" onclick="deleteDetailProgression()">Delete</button>
+    // Add a small delay to prevent rapid double-clicks from causing issues
+    setTimeout(() => {
+        const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
+        // Use currentUniqueKey which has format: progIndex:lineTitle
+        const keyToUse = currentUniqueKey || currentLineTitle;
+        const detailData = progressionDetails[keyToUse] || { theory: '', music: '', genre: '' };
+        
+        // Clear any existing edit windows first
+        const detailContent = document.getElementById('detailContent');
+        detailContent.innerHTML = '';
+        
+        detailContent.innerHTML = `
+            <div class="detail-box">
+                <div class="detail-edit-form">
+                    <div class="progression-edit-row">
+                        <label>Theory:</label>
+                        <textarea class="detail-edit-theory" name="theory" id="detail-edit-theory" style="min-height: 150px;">${escapeHtml(detailData.theory || '')}</textarea>
+                    </div>
+                    <div class="progression-edit-row">
+                        <label>Music:</label>
+                        <textarea class="detail-edit-music" name="music" id="detail-edit-music" style="min-height: 150px;">${escapeHtml(detailData.music || '')}</textarea>
+                    </div>
+                    <div class="progression-edit-row">
+                        <label>Genre:</label>
+                        <textarea class="detail-edit-genre" name="genre" id="detail-edit-genre" style="min-height: 150px;">${escapeHtml(detailData.genre || '')}</textarea>
+                    </div>
+                    <div class="detail-edit-controls">
+                        <button class="detail-save-btn" onclick="saveDetailEdit()">Save</button>
+                        <button class="detail-cancel-btn" onclick="cancelDetailEdit()">Cancel</button>
+                        <button class="detail-delete-btn" onclick="deleteDetailProgression()">Delete</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    }, 0);
 }
 
 // Save detail edit
@@ -193,10 +197,20 @@ function loadDetailView() {
     
     // Show edit button only in owner mode
     const controlsDiv = document.getElementById('detailControls');
+    controlsDiv.innerHTML = ''; // Clear first
     if (isOwnerMode()) {
-        controlsDiv.innerHTML = `<span class="edit-icon" onclick="startDetailEdit()" title="Edit">✏️</span>`;
-    } else {
-        controlsDiv.innerHTML = '';
+        const editBtn = document.createElement('span');
+        editBtn.className = 'edit-icon';
+        editBtn.textContent = '✏️';
+        editBtn.title = 'Edit';
+        editBtn.style.cursor = 'pointer';
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isEditingDetail) {
+                startDetailEdit();
+            }
+        });
+        controlsDiv.appendChild(editBtn);
     }
     
     // Get detail content keyed by unique key (progIndex:lineTitle)
