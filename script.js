@@ -86,20 +86,30 @@ function autoRestoreFromBackup() {
     fetch('music-theory-data.json')
         .then(response => response.json())
         .then(data => {
+            // The backup file already has stringified JSON values, so don't stringify again
             if (data.progressions) {
-                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(data.progressions));
+                // If it's already a string, use it directly; if it's an object, stringify it
+                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, 
+                    typeof data.progressions === 'string' ? data.progressions : JSON.stringify(data.progressions));
             }
             if (data.progressionDetails) {
-                localStorage.setItem('progressionDetails', JSON.stringify(data.progressionDetails));
+                localStorage.setItem('progressionDetails', 
+                    typeof data.progressionDetails === 'string' ? data.progressionDetails : JSON.stringify(data.progressionDetails));
             }
             if (data.musicTheory) {
-                localStorage.setItem('musicTheory', JSON.stringify(data.musicTheory));
+                localStorage.setItem('musicTheory', 
+                    typeof data.musicTheory === 'string' ? data.musicTheory : JSON.stringify(data.musicTheory));
             }
             if (data.theoryOrder) {
-                localStorage.setItem('theoryOrder', JSON.stringify(data.theoryOrder));
+                localStorage.setItem('theoryOrder', 
+                    typeof data.theoryOrder === 'string' ? data.theoryOrder : JSON.stringify(data.theoryOrder));
             }
             if (data.groupNames) {
-                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, JSON.stringify(data.groupNames));
+                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, 
+                    typeof data.groupNames === 'string' ? data.groupNames : JSON.stringify(data.groupNames));
+            }
+            if (data.siteDescription) {
+                localStorage.setItem(STORAGE_KEYS.SITE_DESCRIPTION, data.siteDescription);
             }
             console.log('✓ Data restored from backup');
         })
@@ -269,6 +279,7 @@ function manualSaveData() {
         musicTheory: localStorage.getItem('musicTheory'),
         theoryOrder: localStorage.getItem('theoryOrder'),
         groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
+        siteDescription: localStorage.getItem(STORAGE_KEYS.SITE_DESCRIPTION),
         settings: {
             musicVolume: localStorage.getItem('musicVolume'),
             musicEnabled: localStorage.getItem('musicEnabled'),
