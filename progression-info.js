@@ -20,30 +20,8 @@ function migrateOldContent() {
     }
 }
 
-// Fix theory name typos
-function fixTheoryNameTypos() {
-    // No longer needed - using smart lookup instead
-}
-
-// Initialize sample music theory data if empty (for testing)
-function initializeSampleTheoryData() {
-    const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
-    
-    // Ensure Pedal Note exists
-    if (!musicTheory['Pedal Note']) {
-        musicTheory['Pedal Note'] = {
-            theory: `Pedal Note
-< Info >
-A sustained, repeated low note, usually in the bass, over which the harmony changes`,
-            music: ''
-        };
-    }
-}
-
-// Call initialization
+// Initialize on load
 migrateOldContent();
-fixTheoryNameTypos();
-initializeSampleTheoryData();
 
 // Check owner mode
 function isOwnerMode() {
@@ -103,8 +81,22 @@ let currentUniqueKey = null;
 // Helper to get the visible detail content element
 function getVisibleDetailContent() {
     const progressionInfoPage = document.getElementById('progressionInfoPage');
-    if (!progressionInfoPage || progressionInfoPage.style.display === 'none') return null;
-    return progressionInfoPage.querySelector('#detailContent');
+    if (!progressionInfoPage) {
+        console.warn('progressionInfoPage element not found');
+        return null;
+    }
+    if (progressionInfoPage.style.display === 'none') {
+        console.warn('progressionInfoPage is hidden');
+        return null;
+    }
+    
+    const detailContent = progressionInfoPage.querySelector('#detailContent');
+    if (!detailContent) {
+        console.warn('detailContent element not found');
+        return null;
+    }
+    return detailContent;
+}
 }
 
 // Start editing detail
@@ -193,10 +185,11 @@ function saveDetailEdit() {
     const music = document.querySelector('.detail-edit-music').value.trim();
     const genre = document.querySelector('.detail-edit-genre').value.trim();
     
-
-
-
-
+    // Validate: at least one field must have content
+    if (!theory && !music && !genre) {
+        alert('Please enter content in at least one section (Theory, Music, or Genre).');
+        return;
+    }
     
     const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
     const keyToSave = currentUniqueKey || currentLineTitle;
@@ -205,7 +198,9 @@ function saveDetailEdit() {
     
     // Also save to IndexedDB
     if (typeof db !== 'undefined' && db.ready) {
-        db.set('progressionDetails', 'default', progressionDetails).catch(() => {});
+        db.set('progressionDetails', 'default', progressionDetails).catch(err => {
+            console.warn('IndexedDB save failed:', err);
+        });
     }
     
     isEditingDetail = false;

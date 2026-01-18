@@ -62,7 +62,19 @@ function startEditTheory(key) {
 
 // Save theory from modal
 function saveTheoryModal(key) {
-    const content = document.getElementById(`theory-edit-textarea-${key}`).value.trim();
+    const textarea = document.getElementById(`theory-edit-textarea-${key}`);
+    if (!textarea) {
+        console.error('Theory textarea not found:', key);
+        return;
+    }
+    
+    const content = textarea.value.trim();
+    
+    // Validate: must have at least a title line
+    if (!content) {
+        alert('Please enter at least a title for the theory.');
+        return;
+    }
     
     const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
     musicTheory[key] = { theory: content, music: '' };
@@ -70,7 +82,9 @@ function saveTheoryModal(key) {
     
     // Sync to IndexedDB
     if (typeof db !== 'undefined' && db.ready) {
-        db.set('musicTheory', 'default', musicTheory).catch(() => {});
+        db.set('musicTheory', 'default', musicTheory).catch(err => {
+            console.warn('IndexedDB save failed:', err);
+        });
     }
     
     invalidateCache();
