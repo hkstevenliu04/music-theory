@@ -191,6 +191,12 @@ function addNewTheory() {
     musicTheory[newKey] = { theory: newKey, music: '' };
     localStorage.setItem('musicTheory', JSON.stringify(musicTheory));
     
+    // Sync to IndexedDB
+    if (typeof db !== 'undefined' && db.ready) {
+        db.set('musicTheory', 'default', musicTheory).catch(() => {});
+    }
+    
+    invalidateCache();
     loadTheories();
 }
 
