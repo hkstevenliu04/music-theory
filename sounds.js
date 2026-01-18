@@ -282,12 +282,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (soundEffects.musicPlaying) {
                 soundEffects.stopBackgroundMusic();
                 musicToggleBtn.classList.remove('active');
-                musicToggleBtn.textContent = '🎵 Music';
+                musicToggleBtn.textContent = '♪ Music';
             } else {
                 soundEffects.init();
                 soundEffects.playBackgroundMusic();
                 musicToggleBtn.classList.add('active');
-                musicToggleBtn.textContent = '🎵 Music On';
+                musicToggleBtn.textContent = '♪ Music On';
             }
         });
     }
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
             soundEffects.playBackgroundMusic();
             if (musicToggleBtn) {
                 musicToggleBtn.classList.add('active');
-                musicToggleBtn.textContent = '🎵 Music On';
+                musicToggleBtn.textContent = '♪ Music On';
             }
         }
         // Remove listeners after first interaction
