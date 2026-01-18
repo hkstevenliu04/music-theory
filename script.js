@@ -513,20 +513,6 @@ function editSiteDescription() {
     }
 }
 
-// Load site description (for SPA)
-function loadSiteDescription() {
-    const description = localStorage.getItem('siteDescription') || 'Learn and explore chord progressions and music theory concepts.';
-    const descElement = document.getElementById('siteDescription');
-    if (descElement) {
-        descElement.textContent = description;
-    }
-    
-    const editBtn = document.getElementById('editDescBtn');
-    if (editBtn) {
-        editBtn.style.display = isOwnerMode() ? 'block' : 'none';
-    }
-}
-
 // Updated showDetail for SPA navigation
 function showDetail(indexOrLineText, encodedLineTitle) {
     // Support both old format (index) and new format (line text)
