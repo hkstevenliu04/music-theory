@@ -1039,6 +1039,15 @@ main {
     padding: 20px;
 }
 
+.progression-controls {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 9999;
+    overflow: visible;
+    padding: 20px;
+}
+
 .edit-icon {
     font-size: 1.3em;
     cursor: pointer;

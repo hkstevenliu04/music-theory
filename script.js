@@ -137,8 +137,11 @@ function autoSaveData() {
     });
 }
 
-// Track currently open group for accordion
-let currentOpenGroup = null;
+// Edit current progression
+function editCurrentProgression() {
+    if (!isOwnerMode()) return;
+    alert('Edit progression feature - you can add this functionality to edit progression titles');
+}
 
 // Manual save with audio feedback
 function manualSaveData() {
@@ -233,6 +236,14 @@ function loadProgressions() {
     initializeProgressions();
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
 
+    // Show edit button if in owner mode (for chord progression page)
+    const progressionControls = document.getElementById('progressionControls');
+    if (progressionControls) {
+        progressionControls.innerHTML = '';
+        if (isOwnerMode()) {
+            progressionControls.innerHTML = `<span class="edit-icon" onclick="editCurrentProgression()" title="Edit Progression">✏️</span>`;
+        }
+    }
     
     const list = document.getElementById('progressionsList');
     if (!list) {

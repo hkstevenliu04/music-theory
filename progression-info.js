@@ -245,17 +245,9 @@ function loadDetailView() {
     
     // Show edit button only in owner mode
     const controlsDiv = document.getElementById('detailControls');
-    console.log('Debug: controlsDiv found?', !!controlsDiv);
-    console.log('Debug: isOwnerMode()?', isOwnerMode());
-    console.log('Debug: EDIT_UI_ENABLED?', EDIT_UI_ENABLED);
-    
     controlsDiv.innerHTML = ''; // Clear first
     if (isOwnerMode()) {
         controlsDiv.innerHTML = `<span class="edit-icon" data-action="edit" title="Edit">✏️</span>`;
-        console.log('Debug: Edit button added to HTML');
-    } else {
-        console.log('Debug: Owner mode disabled, not showing edit button');
-    }
     }
     
     // Get detail content keyed by unique key (progIndex:lineTitle)
