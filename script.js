@@ -169,7 +169,7 @@ function openGroupEditModal() {
     modal.className = 'group-edit-modal';
     
     let groupOptionsHtml = '';
-    const displayOrder = ['1', '2', '3', '4', '5', '6', '7', 'b2', 'b3', '#4', 'b6', 'b7'];
+    const displayOrder = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'];
     displayOrder.forEach(key => {
         if (groups[key]) {
             groupOptionsHtml += `<option value="${key}">${key}</option>`;

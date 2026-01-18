@@ -1076,9 +1076,9 @@ main {
     border: 2px solid #FF1744;
     border-radius: 10px;
     padding: 30px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
+    max-width: 800px;
+    width: 95%;
+    max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(255, 23, 68, 0.3);
 }
@@ -1125,7 +1125,7 @@ main {
 
 .prog-edit-textarea {
     width: 100%;
-    min-height: 120px;
+    min-height: 180px;
     padding: 10px;
     background: #1a1a1a;
     border: 1px solid #555;
