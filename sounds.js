@@ -268,10 +268,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sfxToggleBtn) {
             if (soundEffects.sfxEnabled) {
                 sfxToggleBtn.classList.add('active');
-                sfxToggleBtn.textContent = '🔊 SFX On';
+                sfxToggleBtn.textContent = '[SFX] On';
             } else {
                 sfxToggleBtn.classList.remove('active');
-                sfxToggleBtn.textContent = '🔇 SFX Off';
+                sfxToggleBtn.textContent = '[SFX] Off';
             }
         }
     };
