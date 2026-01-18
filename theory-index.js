@@ -52,7 +52,6 @@ function startEditTheory(key) {
             <div class="theory-edit-modal-controls">
                 <button class="theory-save-btn" onclick="saveTheoryModal('${key}')">Save</button>
                 <button class="theory-cancel-btn" onclick="cancelEditTheoryModal('${key}')">Cancel</button>
-                <button class="theory-delete-btn" onclick="deleteTheoryModal('${key}')">Delete</button>
             </div>`;
         
         content.querySelector('.theory-edit-form').appendChild(textarea);
@@ -319,8 +318,10 @@ function loadTheories() {
         
         let editBtn = '';
         let moveBtn = '';
+        let deleteBtn = '';
         if (isOwnerMode()) {
             editBtn = `<button class="theory-title-edit-btn" data-action="edit" data-key="${item.key}">✏️</button>`;
+            deleteBtn = `<button class="theory-delete-icon-btn" onclick="deleteTheoryModal('${item.key}')" title="Delete">🗑️</button>`;
             let upBtn = index > 0 ? `<button class="theory-move-btn" data-action="up" data-key="${item.key}">↑</button>` : '';
             let downBtn = index < theoriesWithContent.length - 1 ? `<button class="theory-move-btn" data-action="down" data-key="${item.key}">↓</button>` : '';
             moveBtn = upBtn + downBtn;
@@ -331,7 +332,7 @@ function loadTheories() {
             <div class="theory-title-group ${isFirst}" data-theory-key="${item.key}">
                 <div class="theory-main-title" onmouseenter="switchTheoryContent('${item.key}', -1)" onmouseleave="">
                     <span class="theory-title-text">${escapeHtml(parsed.mainTitle)}</span>
-                    <div class="theory-btn-group">${moveBtn}${editBtn}</div>
+                    <div class="theory-btn-group">${moveBtn}${editBtn}${deleteBtn}</div>
                 </div>
         `;
         
