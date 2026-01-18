@@ -55,7 +55,7 @@ let EDIT_UI_ENABLED = localStorage.getItem(STORAGE_KEYS.OWNER_MODE) === 'true';
 
 function toggleOwnerMode() {
     const password = prompt('Enter owner password to unlock editing:');
-    if (password === 'owner123') { // Change this to your desired password
+    if (password === 'live@life04') {
         EDIT_UI_ENABLED = true;
         localStorage.setItem(STORAGE_KEYS.OWNER_MODE, 'true');
         alert('✓ Owner mode enabled! Drag and delete buttons are now visible.');
