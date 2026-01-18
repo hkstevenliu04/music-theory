@@ -109,11 +109,7 @@ function importProgressionData(file) {
 
 
 // Config: enable edit UI only when viewing locally
-const EDIT_UI_ENABLED = (
-    location.hostname === 'localhost' ||
-    location.hostname === '127.0.0.1' ||
-    location.protocol === 'file:'
-);
+const EDIT_UI_ENABLED = true; // Always enable editing
 
 // Owner mode detection based on local-only config
 function isOwnerMode() {
