@@ -21,6 +21,11 @@ function invalidateCache() {
 function startEditTheory(key) {
     if (!isOwnerMode()) return;
     
+    // Prevent duplicate modals
+    if (document.getElementById(`theory-edit-modal-${key}`)) {
+        return;
+    }
+    
     // Use requestAnimationFrame to avoid blocking
     requestAnimationFrame(() => {
         const musicTheory = getCachedMusicTheory();
@@ -76,6 +81,9 @@ function saveTheoryModal(key) {
 function cancelEditTheoryModal(key) {
     const modal = document.getElementById(`theory-edit-modal-${key}`);
     if (modal) modal.remove();
+    
+    // Extra safety: remove any duplicates
+    document.querySelectorAll(`[id="theory-edit-modal-${key}"]`).forEach(m => m.remove());
 }
 
 // Delete theory from modal
