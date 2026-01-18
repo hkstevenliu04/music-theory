@@ -49,12 +49,13 @@ const STORAGE_KEYS = {
     SITE_DESCRIPTION: 'siteDescription'
 };
 
-// Auto-save functionality - saves data every 30 seconds
+// Auto-save functionality - saves data every 3 minutes
 function autoSaveData() {
     const data = {
         progressions: localStorage.getItem(STORAGE_KEYS.PROGRESSIONS),
         progressionDetails: localStorage.getItem('progressionDetails'),
         musicTheory: localStorage.getItem('musicTheory'),
+        theoryOrder: localStorage.getItem('theoryOrder'),
         groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
         settings: {
             musicVolume: localStorage.getItem('musicVolume'),
@@ -66,7 +67,15 @@ function autoSaveData() {
     };
     
     // Try to save to server if available (non-blocking)
-    navigator.sendBeacon('/api/save-data', JSON.stringify(data));
+    fetch('/api/save-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        keepalive: true
+    }).catch(err => {
+        // Silently fail - server may not be running
+        console.debug('Auto-save to server failed (expected if server not running)');
+    });
 }
 
 // Only save when leaving page (minimal impact)
@@ -86,9 +95,27 @@ function exportProgressionData() {
     const data = {
         progressions: localStorage.getItem(STORAGE_KEYS.PROGRESSIONS),
         progressionDetails: localStorage.getItem('progressionDetails'),
+        musicTheory: localStorage.getItem('musicTheory'),
+        theoryOrder: localStorage.getItem('theoryOrder'),
         groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
+        settings: {
+            musicVolume: localStorage.getItem('musicVolume'),
+            musicEnabled: localStorage.getItem('musicEnabled'),
+            sfxVolume: localStorage.getItem('sfxVolume'),
+            sfxEnabled: localStorage.getItem('sfxEnabled')
+        },
         timestamp: new Date().toISOString()
     };
+    
+    // Also save to server
+    fetch('/api/save-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        keepalive: true
+    }).catch(() => {
+        // Silently fail if server not running
+    });
     
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -100,9 +127,6 @@ function exportProgressionData() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-
-}
 
 // Import progression data from a JSON file
 function importProgressionData(file) {
