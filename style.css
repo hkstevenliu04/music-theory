@@ -126,6 +126,46 @@ main {
     margin-bottom: 20px;
 }
 
+.nav-boxes-container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.nav-box-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #FF1744 0%, #cc0033 100%);
+    border-radius: 12px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
+    cursor: pointer;
+}
+
+.nav-box-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(255, 23, 68, 0.5);
+}
+
+.nav-box-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+}
+
+.nav-box-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+}
+
 .note-controls {
     margin-top: 0;
     padding: 0;
