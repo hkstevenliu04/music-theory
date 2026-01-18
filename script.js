@@ -694,6 +694,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => {
             loadSiteDescription();
         }, 10);
+    }
+    
     // Only load progressions if the progressionsList element exists
     if (document.getElementById('progressionsList')) {
         loadProgressions();
