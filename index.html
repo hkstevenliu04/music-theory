@@ -90,6 +90,9 @@
                 <div class="sound-section">
                     <button onclick="manualSaveData()" class="sound-btn" style="font-size: 0.9em;">💾 Save Data</button>
                 </div>
+                <div class="sound-section" id="ownerModeSection">
+                    <button onclick="toggleOwnerMode()" class="sound-btn" id="ownerModeToggle" style="font-size: 0.9em;">🔐 Unlock Owner</button>
+                </div>
             </div>
         </footer>
     </div>
@@ -113,8 +116,20 @@
             }
         }
         
+        // Update owner mode button text based on current state
+        function updateOwnerModeButton() {
+            const btn = document.getElementById('ownerModeToggle');
+            if (btn) {
+                btn.textContent = EDIT_UI_ENABLED ? '🔓 Lock Owner' : '🔐 Unlock Owner';
+                btn.onclick = EDIT_UI_ENABLED ? disableOwnerMode : toggleOwnerMode;
+            }
+        }
+        
         // Hide loading screen when DOM is ready
-        document.addEventListener('DOMContentLoaded', hideLoadingScreen);
+        document.addEventListener('DOMContentLoaded', () => {
+            hideLoadingScreen();
+            updateOwnerModeButton();
+        });
         
         // Also hide when all resources are loaded
         window.addEventListener('load', hideLoadingScreen);

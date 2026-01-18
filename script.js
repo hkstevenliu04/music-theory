@@ -46,8 +46,31 @@ const StorageManager = {
 const STORAGE_KEYS = {
     PROGRESSIONS: 'musicProgressions',
     GROUP_NAMES: 'groupCustomNames',
-    SITE_DESCRIPTION: 'siteDescription'
+    SITE_DESCRIPTION: 'siteDescription',
+    OWNER_MODE: 'ownerModeEnabled'
 };
+
+// Owner mode management
+let EDIT_UI_ENABLED = localStorage.getItem(STORAGE_KEYS.OWNER_MODE) === 'true';
+
+function toggleOwnerMode() {
+    const password = prompt('Enter owner password to unlock editing:');
+    if (password === 'owner123') { // Change this to your desired password
+        EDIT_UI_ENABLED = true;
+        localStorage.setItem(STORAGE_KEYS.OWNER_MODE, 'true');
+        alert('✓ Owner mode enabled! Drag and delete buttons are now visible.');
+        location.reload();
+    } else if (password !== null) {
+        alert('✗ Incorrect password.');
+    }
+}
+
+function disableOwnerMode() {
+    EDIT_UI_ENABLED = false;
+    localStorage.setItem(STORAGE_KEYS.OWNER_MODE, 'false');
+    alert('✓ Owner mode disabled.');
+    location.reload();
+}
 
 // Auto-restore data from JSON file on page load if localStorage is empty
 function autoRestoreFromBackup() {
@@ -155,10 +178,10 @@ function manualSaveData() {
     });
 }
 
-// Config: enable edit UI only when viewing locally
-const EDIT_UI_ENABLED = true; // Always enable editing
+// Config: owner mode based on localStorage
+// Initialized above with STORAGE_KEYS.OWNER_MODE check
 
-// Owner mode detection based on local-only config
+// Owner mode detection based on localStorage flag
 function isOwnerMode() {
     return EDIT_UI_ENABLED;
 }
