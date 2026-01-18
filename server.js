@@ -27,7 +27,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-const PORT = 8000;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log('Auto-save endpoint: POST /api/save-data');
