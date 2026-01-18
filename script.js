@@ -144,7 +144,146 @@ function editCurrentProgression() {
         alert('Owner mode not enabled');
         return;
     }
-    alert('Edit progression feature - you can add this functionality to edit progression titles');
+    openGroupEditModal();
+}
+
+// Open modal to edit group content
+function openGroupEditModal() {
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    
+    // Get groups
+    const groups = {};
+    progs.forEach((prog, idx) => {
+        let key = prog.title.charAt(0);
+        if ((key === 'b' || key === '#') && prog.title.length > 1) {
+            key = prog.title.substring(0, 2);
+        }
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key].push({ ...prog, origIndex: idx });
+    });
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'groupEditModal';
+    modal.className = 'group-edit-modal';
+    
+    let groupOptionsHtml = '';
+    const displayOrder = ['1', '2', '3', '4', '5', '6', '7', 'b2', 'b3', '#4', 'b6', 'b7'];
+    displayOrder.forEach(key => {
+        if (groups[key]) {
+            groupOptionsHtml += `<option value="${key}">${key}</option>`;
+        }
+    });
+    
+    modal.innerHTML = `
+        <div class="group-edit-modal-content">
+            <h2>Edit Group Content</h2>
+            <label for="groupSelect">Select Group:</label>
+            <select id="groupSelect" onchange="updateGroupPreview()">
+                ${groupOptionsHtml}
+            </select>
+            <br><br>
+            <label for="groupContentTextarea">Content:</label>
+            <textarea id="groupContentTextarea" class="group-edit-textarea" placeholder="Enter group content..."></textarea>
+            <div class="group-edit-modal-buttons">
+                <button onclick="saveGroupEdit()" class="group-save-btn">Save</button>
+                <button onclick="closeGroupEditModal()" class="group-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Load first group
+    updateGroupPreview();
+}
+
+function updateGroupPreview() {
+    const groupSelect = document.getElementById('groupSelect');
+    const textarea = document.getElementById('groupContentTextarea');
+    const selectedGroup = groupSelect.value;
+    
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    
+    // Find all progressions in this group
+    const groupProgs = progs.filter(prog => {
+        let key = prog.title.charAt(0);
+        if ((key === 'b' || key === '#') && prog.title.length > 1) {
+            key = prog.title.substring(0, 2);
+        }
+        return key === selectedGroup;
+    });
+    
+    // Display all progressions in this group
+    let content = '';
+    groupProgs.forEach((prog, idx) => {
+        content += `[${prog.title}]\n${prog.content}\n\n`;
+    });
+    
+    textarea.value = content;
+}
+
+function saveGroupEdit() {
+    const groupSelect = document.getElementById('groupSelect');
+    const textarea = document.getElementById('groupContentTextarea');
+    const selectedGroup = groupSelect.value;
+    const newContent = textarea.value;
+    
+    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    
+    // Parse the edited content back
+    const lines = newContent.split('\n');
+    let currentTitle = null;
+    let currentContent = '';
+    let updated = false;
+    
+    lines.forEach((line, idx) => {
+        if (line.match(/^\[.*\]$/)) {
+            // Save previous progression if exists
+            if (currentTitle) {
+                const progIndex = progs.findIndex(p => p.title === currentTitle);
+                if (progIndex !== -1) {
+                    progs[progIndex].content = currentContent.trim();
+                    updated = true;
+                }
+            }
+            // Start new progression
+            currentTitle = line.replace(/[\[\]]/g, '');
+            currentContent = '';
+        } else if (currentTitle) {
+            currentContent += line + '\n';
+        }
+    });
+    
+    // Save last progression
+    if (currentTitle) {
+        const progIndex = progs.findIndex(p => p.title === currentTitle);
+        if (progIndex !== -1) {
+            progs[progIndex].content = currentContent.trim();
+            updated = true;
+        }
+    }
+    
+    if (updated) {
+        localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
+        if (typeof db !== 'undefined' && db.ready) {
+            db.set('progressions', 'default', progs).catch(() => {});
+        }
+        console.log('✓ Group content saved');
+        closeGroupEditModal();
+        loadProgressions(); // Reload to show changes
+    } else {
+        alert('No changes were made');
+    }
+}
+
+function closeGroupEditModal() {
+    const modal = document.getElementById('groupEditModal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // Manual save with audio feedback

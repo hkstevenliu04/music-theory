@@ -1057,6 +1057,106 @@ main {
     transform: scale(1.2);
 }
 
+/* Group Edit Modal */
+.group-edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.group-edit-modal-content {
+    background: #1a1a1a;
+    border: 2px solid #FF1744;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(255, 23, 68, 0.3);
+}
+
+.group-edit-modal-content h2 {
+    color: #FF1744;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.group-edit-modal-content label {
+    display: block;
+    color: #e0e0e0;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.group-edit-modal-content select {
+    width: 100%;
+    padding: 10px;
+    background: #2d2d2d;
+    border: 2px solid #FF1744;
+    border-radius: 5px;
+    color: #e0e0e0;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.group-edit-textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 12px;
+    background: #2d2d2d;
+    border: 2px solid #FF1744;
+    border-radius: 5px;
+    color: #e0e0e0;
+    font-family: monospace;
+    font-size: 0.9em;
+    resize: vertical;
+}
+
+.group-edit-modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.group-save-btn, .group-cancel-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.group-save-btn {
+    background: linear-gradient(135deg, #FF1744 0%, #00ff99 100%);
+    color: #000;
+}
+
+.group-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+}
+
+.group-cancel-btn {
+    background: #555;
+    color: #fff;
+}
+
+.group-cancel-btn:hover {
+    background: #666;
+}
+
 .detail-edit-btn {
     background: linear-gradient(135deg, #FF1744 0%, #00ff99 100%);
     color: #000;
