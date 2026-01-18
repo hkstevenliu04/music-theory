@@ -432,8 +432,13 @@ function loadTheories() {
     theoryList.innerHTML = html;
     window.theoryContentData = contentData;
     
-    // Add event listeners for buttons
-    theoryList.addEventListener('click', (e) => {
+    // Remove old event listener if it exists
+    if (window.theoryListClickHandler) {
+        theoryList.removeEventListener('click', window.theoryListClickHandler);
+    }
+    
+    // Create new event listener function and store reference
+    window.theoryListClickHandler = (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         
@@ -451,7 +456,10 @@ function loadTheories() {
             console.log('Calling moveTheoryDown with key:', key);
             moveTheoryDown(key);
         }
-    });
+    };
+    
+    // Add event listeners for buttons
+    theoryList.addEventListener('click', window.theoryListClickHandler);
 }
 
 // Show theory hover box with preview
