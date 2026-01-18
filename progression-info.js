@@ -49,6 +49,16 @@ A melodic line moving down by semitones`,
         };
     }
     
+    // Ensure Chromatic Descenting exists (as separate theory)
+    if (!musicTheory['Chromatic Descenting']) {
+        musicTheory['Chromatic Descenting'] = {
+            theory: `Chromatic Descenting
+< Info >
+The progressive descending motion through chromatic notes`,
+            music: ''
+        };
+    }
+    
     localStorage.setItem('musicTheory', JSON.stringify(musicTheory));
 }
 
@@ -392,22 +402,6 @@ function showTheoryTooltip(lineTitle, event) {
     if (!theoryData) {
         for (const key in musicTheory) {
             if (key.toLowerCase() === theoryName.toLowerCase()) {
-                theoryData = musicTheory[key];
-                break;
-            }
-        }
-    }
-    
-    // If still not found, try fuzzy matching (e.g., "Chromatic Descenting" -> "Chromatic Descent")
-    if (!theoryData) {
-        for (const key in musicTheory) {
-            // Try removing "ing" suffix
-            if (theoryName.endsWith('ing') && key === theoryName.slice(0, -3)) {
-                theoryData = musicTheory[key];
-                break;
-            }
-            // Try adding "ing" suffix
-            if (key.endsWith('ing') && theoryName === key.slice(0, -3)) {
                 theoryData = musicTheory[key];
                 break;
             }
