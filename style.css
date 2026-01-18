@@ -1495,7 +1495,6 @@ footer {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 0 40px rgba(220, 20, 60, 0.4), inset 0 0 20px rgba(220, 20, 60, 0.1);
-    animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {

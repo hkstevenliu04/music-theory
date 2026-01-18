@@ -7,36 +7,39 @@ function isOwnerMode() {
 function startEditTheory(key) {
     if (!isOwnerMode()) return;
     
-    const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
-    const theoryData = typeof musicTheory[key] === 'string' 
-        ? { theory: musicTheory[key], music: '' } 
-        : (musicTheory[key] || { theory: '', music: '' });
-    
-    // Show edit modal
-    const modal = document.createElement('div');
-    modal.id = `theory-edit-modal-${key}`;
-    modal.className = 'theory-edit-modal';
-    
-    const textarea = document.createElement('textarea');
-    textarea.id = `theory-edit-textarea-${key}`;
-    textarea.className = 'theory-edit-textarea';
-    textarea.value = theoryData.theory;
-    
-    const content = document.createElement('div');
-    content.className = 'theory-edit-modal-content';
-    content.innerHTML = `<h2>Edit Theory</h2>
-        <div class="theory-edit-form">
-            <label>Content (format: Title on first line, then use "- Subtitle" for subtitles):</label>
-        </div>
-        <div class="theory-edit-modal-controls">
-            <button class="theory-save-btn" onclick="saveTheoryModal('${key}')">Save</button>
-            <button class="theory-cancel-btn" onclick="cancelEditTheoryModal('${key}')">Cancel</button>
-            <button class="theory-delete-btn" onclick="deleteTheoryModal('${key}')">Delete</button>
-        </div>`;
-    
-    content.querySelector('.theory-edit-form').appendChild(textarea);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
+    // Use requestAnimationFrame to avoid blocking
+    requestAnimationFrame(() => {
+        const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
+        const theoryData = typeof musicTheory[key] === 'string' 
+            ? { theory: musicTheory[key], music: '' } 
+            : (musicTheory[key] || { theory: '', music: '' });
+        
+        // Show edit modal
+        const modal = document.createElement('div');
+        modal.id = `theory-edit-modal-${key}`;
+        modal.className = 'theory-edit-modal';
+        
+        const textarea = document.createElement('textarea');
+        textarea.id = `theory-edit-textarea-${key}`;
+        textarea.className = 'theory-edit-textarea';
+        textarea.value = theoryData.theory;
+        
+        const content = document.createElement('div');
+        content.className = 'theory-edit-modal-content';
+        content.innerHTML = `<h2>Edit Theory</h2>
+            <div class="theory-edit-form">
+                <label>Content (format: Title on first line, then use "- Subtitle" for subtitles):</label>
+            </div>
+            <div class="theory-edit-modal-controls">
+                <button class="theory-save-btn" onclick="saveTheoryModal('${key}')">Save</button>
+                <button class="theory-cancel-btn" onclick="cancelEditTheoryModal('${key}')">Cancel</button>
+                <button class="theory-delete-btn" onclick="deleteTheoryModal('${key}')">Delete</button>
+            </div>`;
+        
+        content.querySelector('.theory-edit-form').appendChild(textarea);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    });
 }
 
 // Save theory from modal
