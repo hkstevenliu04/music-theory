@@ -49,6 +49,38 @@ const STORAGE_KEYS = {
     SITE_DESCRIPTION: 'siteDescription'
 };
 
+// Auto-save functionality - saves data every 30 seconds
+function autoSaveData() {
+    const data = {
+        progressions: localStorage.getItem(STORAGE_KEYS.PROGRESSIONS),
+        progressionDetails: localStorage.getItem('progressionDetails'),
+        musicTheory: localStorage.getItem('musicTheory'),
+        groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
+        settings: {
+            musicVolume: localStorage.getItem('musicVolume'),
+            musicEnabled: localStorage.getItem('musicEnabled'),
+            sfxVolume: localStorage.getItem('sfxVolume'),
+            sfxEnabled: localStorage.getItem('sfxEnabled')
+        },
+        timestamp: new Date().toISOString()
+    };
+    
+    // Try to save to server if available
+    fetch('/api/save-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).catch(() => {
+        // Server not available, data stays in localStorage
+    });
+}
+
+// Start auto-save interval (every 30 seconds)
+setInterval(autoSaveData, 30000);
+
+// Also save on page unload
+window.addEventListener('beforeunload', autoSaveData);
+
 // Track currently open group for accordion
 let currentOpenGroup = null;
 
