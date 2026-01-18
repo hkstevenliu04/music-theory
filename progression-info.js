@@ -403,9 +403,6 @@ function showTheoryTooltip(lineTitle, event) {
     // Get theory definition from Music Theory page storage
     const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
     
-    console.log('Looking for theory:', theoryName);
-    console.log('Available keys:', Object.keys(musicTheory));
-    
     // Try to find exact match first
     let theoryData = musicTheory[theoryName];
     
@@ -413,7 +410,6 @@ function showTheoryTooltip(lineTitle, event) {
     if (!theoryData) {
         for (const key in musicTheory) {
             if (key.toLowerCase() === theoryName.toLowerCase()) {
-                console.log('Found case-insensitive match:', key);
                 theoryData = musicTheory[key];
                 break;
             }
@@ -421,7 +417,6 @@ function showTheoryTooltip(lineTitle, event) {
     }
     
     if (!theoryData) {
-        console.log('No theory data found for:', theoryName);
         return;
     }
     
