@@ -183,8 +183,6 @@ function moveTheoryDown(key) {
 function swapTheories(key1, key2) {
     if (!isOwnerMode()) return;
     
-    console.log('swapTheories called with:', key1, key2);
-    
     const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
     
     // Get or create theoryOrder array
@@ -199,22 +197,15 @@ function swapTheories(key1, key2) {
         });
     }
     
-    console.log('Available keys:', theoryOrder);
-    
     const index1 = theoryOrder.indexOf(key1);
     const index2 = theoryOrder.indexOf(key2);
     
-    console.log('Index1:', index1, 'Index2:', index2);
-    
     if (index1 === -1 || index2 === -1) {
-        console.log('Key not found!');
         return;
     }
     
     // Swap positions in the array
     [theoryOrder[index1], theoryOrder[index2]] = [theoryOrder[index2], theoryOrder[index1]];
-    
-    console.log('Keys after swap:', theoryOrder);
     
     // Save the new order
     localStorage.setItem('theoryOrder', JSON.stringify(theoryOrder));
@@ -225,7 +216,6 @@ function swapTheories(key1, key2) {
     // Invalidate cache so fresh data is loaded
     invalidateCache();
     
-    console.log('Reloading theories...');
     loadTheories();
 }
 
@@ -313,14 +303,12 @@ function loadTheories() {
     
     // Get stored order or use object keys
     let theoryOrder = JSON.parse(localStorage.getItem('theoryOrder')) || [];
-    console.log('loadTheories - theoryOrder from storage:', theoryOrder);
     
     // Filter entries that have theory content, respecting theoryOrder
     let theoriesWithContent = [];
     
     // If we have a stored order, use it
     if (theoryOrder.length > 0) {
-        console.log('Using stored theoryOrder');
         theoriesWithContent = theoryOrder
             .filter(key => musicTheory[key])
             .filter(key => {
@@ -333,9 +321,7 @@ function loadTheories() {
                 const theoryData = typeof data === 'string' ? { theory: data, music: '' } : data;
                 return { key, ...theoryData };
             });
-        console.log('theoriesWithContent keys:', theoriesWithContent.map(t => t.key));
     } else {
-        console.log('No stored theoryOrder, using Object.entries fallback');
         // Fallback to object entries if no stored order
         theoriesWithContent = Object.entries(musicTheory)
             .filter(([key, data]) => {
@@ -349,7 +335,6 @@ function loadTheories() {
         
         // Save the order for future use
         theoryOrder = theoriesWithContent.map(t => t.key);
-        console.log('Saving new theoryOrder:', theoryOrder);
         localStorage.setItem('theoryOrder', JSON.stringify(theoryOrder));
         if (typeof db !== 'undefined' && db.ready) {
             db.set('theoryOrder', 'default', theoryOrder).catch(() => {});
@@ -528,7 +513,6 @@ function loadTheories() {
     `;
     
     theoryList.innerHTML = html;
-    console.log('Set theoryList.innerHTML - current content order:', theoriesWithContent.map(t => t.key));
     window.theoryContentData = contentData;
     
     // Remove old event listener if it exists
