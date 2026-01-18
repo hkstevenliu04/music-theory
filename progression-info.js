@@ -82,11 +82,9 @@ let currentUniqueKey = null;
 function getVisibleDetailContent() {
     const progressionInfoPage = document.getElementById('progressionInfoPage');
     if (!progressionInfoPage) {
-        console.warn('progressionInfoPage element not found');
         return null;
     }
     if (progressionInfoPage.style.display === 'none') {
-        console.warn('progressionInfoPage is hidden');
         return null;
     }
     
