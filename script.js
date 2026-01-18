@@ -79,18 +79,26 @@ function autoRestoreFromBackup() {
     
     // If data exists, resolve immediately
     if (hasProgressions && hasTheories) {
+        console.log('✓ Data already in localStorage, skipping restore');
         return Promise.resolve();
     }
     
+    console.log('Attempting to restore from backup JSON...');
+    
     // Try to restore from backup JSON file
     return fetch('music-theory-data.json')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Backup file not found');
+            return response.json();
+        })
         .then(data => {
+            console.log('✓ Backup file loaded, restoring...');
             // The backup file already has stringified JSON values, so don't stringify again
             if (data.progressions) {
                 // If it's already a string, use it directly; if it's an object, stringify it
                 localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, 
                     typeof data.progressions === 'string' ? data.progressions : JSON.stringify(data.progressions));
+                console.log('✓ Progressions restored');
             }
             if (data.progressionDetails) {
                 localStorage.setItem('progressionDetails', 
@@ -99,6 +107,7 @@ function autoRestoreFromBackup() {
             if (data.musicTheory) {
                 localStorage.setItem('musicTheory', 
                     typeof data.musicTheory === 'string' ? data.musicTheory : JSON.stringify(data.musicTheory));
+                console.log('✓ Music theories restored');
             }
             if (data.theoryOrder) {
                 localStorage.setItem('theoryOrder', 
@@ -109,10 +118,10 @@ function autoRestoreFromBackup() {
                     typeof data.groupNames === 'string' ? data.groupNames : JSON.stringify(data.groupNames));
             }
             // Don't restore siteDescription from backup - always use fresh defaults or user-set values
-            console.log('✓ Data restored from backup');
+            console.log('✓ All data restored from backup');
         })
         .catch(err => {
-            console.debug('No backup found or failed to restore');
+            console.debug('Backup restore failed:', err.message);
         });
 }
 

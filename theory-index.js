@@ -711,6 +711,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Wait for autoRestoreFromBackup to complete before loading theories
     if (typeof autoRestoreFromBackup === 'function') {
         await autoRestoreFromBackup();
+        
+        // Add retry logic - wait for musicTheory to be populated
+        let retries = 0;
+        while ((!localStorage.getItem('musicTheory') || localStorage.getItem('musicTheory') === '{}') && retries < 10) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            retries++;
+        }
     }
     loadTheories();
 });
