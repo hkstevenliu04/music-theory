@@ -50,6 +50,13 @@ function isOwnerMode() {
     return EDIT_UI_ENABLED;
 }
 
+// Event delegation for edit button - only ONE listener at document level
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.edit-icon[data-action="edit"]') && !isEditingDetail) {
+        startDetailEdit();
+    }
+}, true); // Use capture phase to catch before other handlers
+
 // Helper function to prevent HTML injection
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -199,18 +206,7 @@ function loadDetailView() {
     const controlsDiv = document.getElementById('detailControls');
     controlsDiv.innerHTML = ''; // Clear first
     if (isOwnerMode()) {
-        const editBtn = document.createElement('span');
-        editBtn.className = 'edit-icon';
-        editBtn.textContent = '✏️';
-        editBtn.title = 'Edit';
-        editBtn.style.cursor = 'pointer';
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!isEditingDetail) {
-                startDetailEdit();
-            }
-        });
-        controlsDiv.appendChild(editBtn);
+        controlsDiv.innerHTML = `<span class="edit-icon" data-action="edit" title="Edit">✏️</span>`;
     }
     
     // Get detail content keyed by unique key (progIndex:lineTitle)
