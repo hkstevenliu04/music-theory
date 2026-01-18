@@ -463,15 +463,16 @@ function showTheoryTooltip(lineTitle, event) {
             if (line.trim() === '< Info >') {
                 inInfoSection = true;
                 continue;
-        }
-        
-        if (inInfoSection) {
-            if (line.trim() === '') {
-                break; // Stop at empty line
             }
-            if (line.trim()) {
-                const styled = line.replace(/\*\*(.*?)\*\*/g, '<span class="tooltip-styled">$1</span>');
-                tooltipContent += `<p class="tooltip-line">${escapeHtml(styled)}</p>`;
+            
+            if (inInfoSection) {
+                if (line.trim() === '') {
+                    break; // Stop at empty line
+                }
+                if (line.trim()) {
+                    const styled = line.replace(/\*\*(.*?)\*\*/g, '<span class="tooltip-styled">$1</span>');
+                    tooltipContent += `<p class="tooltip-line">${escapeHtml(styled)}</p>`;
+                }
             }
         }
     }
