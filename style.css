@@ -1106,14 +1106,29 @@ main {
     color: #e0e0e0;
     font-size: 1em;
     cursor: pointer;
+    margin-bottom: 20px;
 }
 
-.group-edit-textarea {
-    width: 100%;
-    min-height: 300px;
-    padding: 12px;
+.prog-edit-item {
+    margin-top: 20px;
+    padding: 15px;
     background: #2d2d2d;
-    border: 2px solid #FF1744;
+    border-radius: 5px;
+    border-left: 3px solid #FF1744;
+}
+
+.prog-edit-item label {
+    margin: 0 0 10px 0;
+    color: #FF1744;
+    font-weight: 700;
+}
+
+.prog-edit-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px;
+    background: #1a1a1a;
+    border: 1px solid #555;
     border-radius: 5px;
     color: #e0e0e0;
     font-family: monospace;

@@ -179,14 +179,12 @@ function openGroupEditModal() {
     
     modal.innerHTML = `
         <div class="group-edit-modal-content">
-            <h2>Edit Group Content</h2>
+            <h2>Edit Group</h2>
             <label for="groupSelect">Select Group:</label>
             <select id="groupSelect" onchange="updateGroupPreview()">
                 ${groupOptionsHtml}
             </select>
-            <br><br>
-            <label for="groupContentTextarea">Content:</label>
-            <textarea id="groupContentTextarea" class="group-edit-textarea" placeholder="Enter group content..."></textarea>
+            <div id="groupProgsList"></div>
             <div class="group-edit-modal-buttons">
                 <button onclick="saveGroupEdit()" class="group-save-btn">Save</button>
                 <button onclick="closeGroupEditModal()" class="group-cancel-btn">Cancel</button>
@@ -202,7 +200,6 @@ function openGroupEditModal() {
 
 function updateGroupPreview() {
     const groupSelect = document.getElementById('groupSelect');
-    const textarea = document.getElementById('groupContentTextarea');
     const selectedGroup = groupSelect.value;
     
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
@@ -216,55 +213,35 @@ function updateGroupPreview() {
         return key === selectedGroup;
     });
     
-    // Display all progressions in this group
-    let content = '';
-    groupProgs.forEach((prog, idx) => {
-        content += `[${prog.title}]\n${prog.content}\n\n`;
+    // Display each progression
+    let html = '';
+    groupProgs.forEach((prog) => {
+        html += `
+            <div class="prog-edit-item">
+                <label>${prog.title}</label>
+                <textarea class="prog-edit-textarea" data-title="${prog.title}">${prog.content}</textarea>
+            </div>
+        `;
     });
     
-    textarea.value = content;
+    document.getElementById('groupProgsList').innerHTML = html;
 }
 
 function saveGroupEdit() {
-    const groupSelect = document.getElementById('groupSelect');
-    const textarea = document.getElementById('groupContentTextarea');
-    const selectedGroup = groupSelect.value;
-    const newContent = textarea.value;
-    
+    const textareas = document.querySelectorAll('.prog-edit-textarea');
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    
-    // Parse the edited content back
-    const lines = newContent.split('\n');
-    let currentTitle = null;
-    let currentContent = '';
     let updated = false;
     
-    lines.forEach((line, idx) => {
-        if (line.match(/^\[.*\]$/)) {
-            // Save previous progression if exists
-            if (currentTitle) {
-                const progIndex = progs.findIndex(p => p.title === currentTitle);
-                if (progIndex !== -1) {
-                    progs[progIndex].content = currentContent.trim();
-                    updated = true;
-                }
-            }
-            // Start new progression
-            currentTitle = line.replace(/[\[\]]/g, '');
-            currentContent = '';
-        } else if (currentTitle) {
-            currentContent += line + '\n';
-        }
-    });
-    
-    // Save last progression
-    if (currentTitle) {
-        const progIndex = progs.findIndex(p => p.title === currentTitle);
-        if (progIndex !== -1) {
-            progs[progIndex].content = currentContent.trim();
+    textareas.forEach(textarea => {
+        const title = textarea.getAttribute('data-title');
+        const newContent = textarea.value;
+        const progIndex = progs.findIndex(p => p.title === title);
+        
+        if (progIndex !== -1 && progs[progIndex].content !== newContent) {
+            progs[progIndex].content = newContent;
             updated = true;
         }
-    }
+    });
     
     if (updated) {
         localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
