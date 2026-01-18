@@ -223,6 +223,13 @@ function deleteDetailProgression() {
         delete progressionDetails[keyToDelete];
         localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
         
+        // Sync to IndexedDB
+        if (typeof db !== 'undefined' && db.ready) {
+            db.set('progressionDetails', 'default', progressionDetails).catch(err => {
+                console.warn('IndexedDB sync failed:', err);
+            });
+        }
+        
         isEditingDetail = false;
         loadDetailView();
     }

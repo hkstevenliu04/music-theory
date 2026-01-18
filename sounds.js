@@ -36,63 +36,45 @@ class SoundEffects {
         if (!this.audioContext || !this.sfxEnabled) return;
         if (!this.audioContext) this.init();
         if (!this.audioContext) return;
-        try {
-            const now = this.audioContext.currentTime;
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(this.audioContext.destination);
-            osc.frequency.value = 700;
-            const sfxGain = (this.sfxVolume / 100) * 0.05;
-            gain.gain.setValueAtTime(sfxGain, now);
-            gain.gain.exponentialRampToValueAtTime(0.01 * (this.sfxVolume / 100), now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } catch (e) {
-
-        }
+        this.playToneSound(700, 0.05, 0.12);
     }
 
     playClickSound() {
         if (!this.audioContext || !this.sfxEnabled) return;
         if (!this.audioContext) this.init();
         if (!this.audioContext) return;
-        try {
-            const now = this.audioContext.currentTime;
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(this.audioContext.destination);
-            osc.frequency.setValueAtTime(1200, now);
-            osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-            const sfxGain = (this.sfxVolume / 100) * 0.1;
-            gain.gain.setValueAtTime(sfxGain, now);
-            gain.gain.exponentialRampToValueAtTime(0.01 * (this.sfxVolume / 100), now + 0.15);
-            osc.start(now);
-            osc.stop(now + 0.15);
-        } catch (e) {
-
-        }
+        this.playToneSound(1200, 0.1, 0.15, 600);
     }
 
     playSoftBeepSound() {
         if (!this.audioContext || !this.sfxEnabled) return;
         if (!this.audioContext) this.init();
         if (!this.audioContext) return;
+        this.playToneSound(700, 0.05, 0.12);
+    }
+
+    // Unified tone generator to reduce code duplication and improve maintainability
+    playToneSound(frequency, volumeFactor, duration, endFrequency = null) {
         try {
             const now = this.audioContext.currentTime;
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
             osc.connect(gain);
             gain.connect(this.audioContext.destination);
-            osc.frequency.value = 700;
-            const sfxGain = (this.sfxVolume / 100) * 0.05;
+            
+            osc.frequency.setValueAtTime(frequency, now);
+            if (endFrequency) {
+                osc.frequency.exponentialRampToValueAtTime(endFrequency, now + duration);
+            }
+            
+            const sfxGain = (this.sfxVolume / 100) * volumeFactor;
             gain.gain.setValueAtTime(sfxGain, now);
-            gain.gain.exponentialRampToValueAtTime(0.01 * (this.sfxVolume / 100), now + 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.01 * (this.sfxVolume / 100), now + duration);
+            
             osc.start(now);
-            osc.stop(now + 0.12);
+            osc.stop(now + duration);
         } catch (e) {
-
+            console.warn('Failed to play tone sound:', e);
         }
     }
 

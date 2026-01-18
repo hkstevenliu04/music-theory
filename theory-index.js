@@ -121,8 +121,12 @@ function deleteTheoryModal(key) {
     
     // Sync to IndexedDB
     if (typeof db !== 'undefined' && db.ready) {
-        db.set('musicTheory', 'default', musicTheory).catch(() => {});
-        db.set('theoryOrder', 'default', theoryOrder).catch(() => {});
+        db.set('musicTheory', 'default', musicTheory).catch(err => {
+            console.warn('IndexedDB sync failed:', err);
+        });
+        db.set('theoryOrder', 'default', theoryOrder).catch(err => {
+            console.warn('IndexedDB sync failed:', err);
+        });
     }
     
     invalidateCache();
@@ -547,15 +551,11 @@ function loadTheories() {
         const action = btn.dataset.action;
         const key = btn.dataset.key;
         
-        console.log('Button clicked:', action, key);
-        
         if (action === 'edit') {
             startEditTheory(key);
         } else if (action === 'up') {
-            console.log('Calling moveTheoryUp with key:', key);
             moveTheoryUp(key);
         } else if (action === 'down') {
-            console.log('Calling moveTheoryDown with key:', key);
             moveTheoryDown(key);
         }
     };
