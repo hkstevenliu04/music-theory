@@ -695,8 +695,6 @@ function loadTheoryList() {
 window.addEventListener('DOMContentLoaded', () => {
     loadTheories();
 });
-        }
-    }
 }
 
 // Helper function to prevent HTML injection
