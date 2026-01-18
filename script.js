@@ -501,11 +501,6 @@ function loadProgressions() {
                 });
             });
             
-            // Add single Edit button at the end if owner mode
-            if (isOwnerMode()) {
-                allContent += `<div class="group-edit-container"><span class="edit-icon" onclick="startGroupEdit('${key}')" title="Edit">✏️</span></div>`;
-            }
-            
             groupContentBox.innerHTML = allContent;
             contentContainer.appendChild(groupContentBox);
             contentWrapper.appendChild(contentContainer);
