@@ -64,19 +64,19 @@ function autoRestoreFromBackup() {
         .then(response => response.json())
         .then(data => {
             if (data.progressions) {
-                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, data.progressions);
+                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(data.progressions));
             }
             if (data.progressionDetails) {
-                localStorage.setItem('progressionDetails', data.progressionDetails);
+                localStorage.setItem('progressionDetails', JSON.stringify(data.progressionDetails));
             }
             if (data.musicTheory) {
-                localStorage.setItem('musicTheory', data.musicTheory);
+                localStorage.setItem('musicTheory', JSON.stringify(data.musicTheory));
             }
             if (data.theoryOrder) {
-                localStorage.setItem('theoryOrder', data.theoryOrder);
+                localStorage.setItem('theoryOrder', JSON.stringify(data.theoryOrder));
             }
             if (data.groupNames) {
-                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, data.groupNames);
+                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, JSON.stringify(data.groupNames));
             }
             console.log('✓ Data restored from backup');
         })
