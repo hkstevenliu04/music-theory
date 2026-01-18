@@ -22,25 +22,7 @@ function migrateOldContent() {
 
 // Fix theory name typos
 function fixTheoryNameTypos() {
-    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
-    let needsSave = false;
-    
-    for (const key in progressionDetails) {
-        const item = progressionDetails[key];
-        const theoryObj = typeof item === 'string' ? { theory: item } : item;
-        if (theoryObj && theoryObj.theory) {
-            // Fix "Chromatic Descenting" -> "Chromatic Descent"
-            if (theoryObj.theory.includes('[ Chromatic Descenting ]')) {
-                theoryObj.theory = theoryObj.theory.replace(/\[ Chromatic Descenting \]/g, '[ Chromatic Descent ]');
-                progressionDetails[key] = theoryObj;
-                needsSave = true;
-            }
-        }
-    }
-    
-    if (needsSave) {
-        localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
-    }
+    // No longer needed - using smart lookup instead
 }
 
 // Initialize sample music theory data if empty (for testing)
@@ -410,6 +392,22 @@ function showTheoryTooltip(lineTitle, event) {
     if (!theoryData) {
         for (const key in musicTheory) {
             if (key.toLowerCase() === theoryName.toLowerCase()) {
+                theoryData = musicTheory[key];
+                break;
+            }
+        }
+    }
+    
+    // If still not found, try fuzzy matching (e.g., "Chromatic Descenting" -> "Chromatic Descent")
+    if (!theoryData) {
+        for (const key in musicTheory) {
+            // Try removing "ing" suffix
+            if (theoryName.endsWith('ing') && key === theoryName.slice(0, -3)) {
+                theoryData = musicTheory[key];
+                break;
+            }
+            // Try adding "ing" suffix
+            if (key.endsWith('ing') && theoryName === key.slice(0, -3)) {
                 theoryData = musicTheory[key];
                 break;
             }
