@@ -528,6 +528,7 @@ function loadTheories() {
     `;
     
     theoryList.innerHTML = html;
+    console.log('Set theoryList.innerHTML - current content order:', theoriesWithContent.map(t => t.key));
     window.theoryContentData = contentData;
     
     // Remove old event listener if it exists
