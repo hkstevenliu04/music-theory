@@ -1224,6 +1224,12 @@ footer {
 
 .theory-title-group {
     margin-bottom: 5px;
+    cursor: grab;
+    transition: opacity 0.2s ease, border-top 0.2s ease;
+}
+
+.theory-title-group:active {
+    cursor: grabbing;
 }
 
 .theory-main-title {

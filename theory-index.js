@@ -172,6 +172,38 @@ function moveTheoryDown(key) {
     loadTheories();
 }
 
+// Swap two theories by drag-and-drop
+function swapTheories(key1, key2) {
+    if (!isOwnerMode()) return;
+    
+    const musicTheory = JSON.parse(localStorage.getItem('musicTheory')) || {};
+    const keys = Object.keys(musicTheory).filter(k => {
+        const data = musicTheory[k];
+        const theoryData = typeof data === 'string' ? { theory: data } : data;
+        return theoryData.theory && theoryData.theory.trim() !== '';
+    });
+    
+    const index1 = keys.indexOf(key1);
+    const index2 = keys.indexOf(key2);
+    
+    if (index1 === -1 || index2 === -1) return;
+    
+    // Swap positions in the array
+    [keys[index1], keys[index2]] = [keys[index2], keys[index1]];
+    
+    // Rebuild object with new order
+    const newTheory = {};
+    keys.forEach(k => {
+        newTheory[k] = musicTheory[k];
+    });
+    
+    localStorage.setItem('musicTheory', JSON.stringify(newTheory));
+    if (typeof db !== 'undefined' && db.ready) {
+        db.set('musicTheory', 'default', newTheory).catch(() => {});
+    }
+    loadTheories();
+}
+
 // Add new theory card
 function addNewTheory() {
     if (!isOwnerMode()) return;
@@ -329,10 +361,10 @@ function loadTheories() {
         
         const isFirst = index === 0 ? 'active' : '';
         titlesHtml += `
-            <div class="theory-title-group ${isFirst}" data-theory-key="${item.key}">
+            <div class="theory-title-group ${isFirst}" data-theory-key="${item.key}" draggable="true">
                 <div class="theory-main-title" onmouseenter="switchTheoryContent('${item.key}', -1)" onmouseleave="">
                     <span class="theory-title-text">${escapeHtml(parsed.mainTitle)}</span>
-                    <div class="theory-btn-group">${moveBtn}${editBtn}${deleteBtn}</div>
+                    <div class="theory-btn-group">${editBtn}${deleteBtn}</div>
                 </div>
         `;
         
@@ -460,6 +492,58 @@ function loadTheories() {
     
     // Add event listeners for buttons
     theoryList.addEventListener('click', window.theoryListClickHandler);
+    
+    // Add drag-and-drop handlers for theory boxes
+    let draggedElement = null;
+    
+    theoryList.addEventListener('dragstart', (e) => {
+        const titleGroup = e.target.closest('.theory-title-group');
+        if (titleGroup) {
+            draggedElement = titleGroup;
+            titleGroup.style.opacity = '0.6';
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', titleGroup.innerHTML);
+        }
+    });
+    
+    theoryList.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        const titleGroup = e.target.closest('.theory-title-group');
+        if (titleGroup && titleGroup !== draggedElement) {
+            titleGroup.style.borderTop = '2px solid #FF1744';
+        }
+    });
+    
+    theoryList.addEventListener('dragleave', (e) => {
+        const titleGroup = e.target.closest('.theory-title-group');
+        if (titleGroup) {
+            titleGroup.style.borderTop = '';
+        }
+    });
+    
+    theoryList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        
+        const dropTarget = e.target.closest('.theory-title-group');
+        if (dropTarget && draggedElement && dropTarget !== draggedElement) {
+            // Swap the theory boxes
+            const draggedKey = draggedElement.dataset.theoryKey;
+            const dropKey = dropTarget.dataset.theoryKey;
+            
+            swapTheories(draggedKey, dropKey);
+        }
+    });
+    
+    theoryList.addEventListener('dragend', (e) => {
+        const titleGroup = e.target.closest('.theory-title-group');
+        if (titleGroup) {
+            titleGroup.style.opacity = '1';
+            titleGroup.style.borderTop = '';
+        }
+        draggedElement = null;
+    });
 }
 
 // Show theory hover box with preview
