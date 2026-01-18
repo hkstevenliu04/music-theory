@@ -44,7 +44,7 @@ if (Test-Path $firstFile) {
     $currentVersion = Get-CurrentVersion $content
     
     if ($null -eq $currentVersion) {
-        Write-Host "❌ No version found in $firstFile" -ForegroundColor Red
+        Write-Host "[ERROR] No version found in $firstFile"
         exit 1
     }
     
@@ -55,7 +55,7 @@ if (Test-Path $firstFile) {
         $newVersion = $NewVersion
     }
     
-    Write-Host "📦 Bumping version: $currentVersion → $newVersion" -ForegroundColor Cyan
+    Write-Host "[*] Bumping version: $currentVersion > $newVersion"
     Write-Host ""
     
     # Update all HTML files
@@ -67,23 +67,23 @@ if (Test-Path $firstFile) {
             
             if ($updatedContent -ne $content) {
                 Set-Content $file $updatedContent
-                Write-Host "✓ Updated $file" -ForegroundColor Green
+                Write-Host "[+] Updated $file"
                 $updatedCount++
             }
         } else {
-            Write-Host "⚠ File not found: $file" -ForegroundColor Yellow
+            Write-Host "[!] File not found: $file"
         }
     }
     
     Write-Host ""
-    Write-Host "✅ Successfully updated $updatedCount files!" -ForegroundColor Green
+    Write-Host "[SUCCESS] Updated $updatedCount files!"
     Write-Host ""
-    Write-Host "Next steps:" -ForegroundColor Cyan
+    Write-Host "Next steps:"
     Write-Host "  git add ."
     Write-Host "  git commit -m 'Bump: Version $newVersion'"
     Write-Host "  git push"
     
 } else {
-    Write-Host "❌ index.html not found" -ForegroundColor Red
+    Write-Host "[ERROR] index.html not found"
     exit 1
 }
