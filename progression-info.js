@@ -94,8 +94,12 @@ let currentLineTitle = null;
 let currentUniqueKey = null;
 
 // Start editing detail
+// Guard to prevent multiple edit windows opening
+let isEditingDetail = false;
+
 function startDetailEdit() {
-    if (!isOwnerMode()) return;
+    if (!isOwnerMode() || isEditingDetail) return;
+    isEditingDetail = true;
     
     const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
     // Use currentUniqueKey which has format: progIndex:lineTitle
@@ -151,13 +155,13 @@ function saveDetailEdit() {
         db.set('progressionDetails', 'default', progressionDetails).catch(() => {});
     }
     
-
-    
+    isEditingDetail = false;
     loadDetailView();
 }
 
 // Cancel detail edit
 function cancelDetailEdit() {
+    isEditingDetail = false;
     loadDetailView();
 }
 
@@ -171,6 +175,7 @@ function deleteDetailProgression() {
         delete progressionDetails[keyToDelete];
         localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
         
+        isEditingDetail = false;
         loadDetailView();
     }
 }
