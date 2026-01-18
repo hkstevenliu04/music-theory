@@ -273,9 +273,10 @@ function loadTheories() {
         let editBtn = '';
         let moveBtn = '';
         if (isOwnerMode()) {
-            editBtn = `<button class="theory-title-edit-btn" onclick="startEditTheory('${item.key}')">✏️</button>`;
-            let upBtn = index > 0 ? `<button class="theory-move-btn" onclick="moveTheoryUp('${item.key}')">↑</button>` : '';
-            let downBtn = index < theoriesWithContent.length - 1 ? `<button class="theory-move-btn" onclick="moveTheoryDown('${item.key}')">↓</button>` : '';
+            const escapedKey = item.key.replace(/'/g, "\\'");
+            editBtn = `<button class="theory-title-edit-btn" onclick="startEditTheory('${escapedKey}')">✏️</button>`;
+            let upBtn = index > 0 ? `<button class="theory-move-btn" onclick="moveTheoryUp('${escapedKey}')">↑</button>` : '';
+            let downBtn = index < theoriesWithContent.length - 1 ? `<button class="theory-move-btn" onclick="moveTheoryDown('${escapedKey}')">↓</button>` : '';
             moveBtn = upBtn + downBtn;
         }
         
