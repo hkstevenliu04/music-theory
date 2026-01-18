@@ -13,7 +13,7 @@ class SoundEffects {
         this.musicPlaying = false;
         this.musicGain = null;
         this.musicVolume = localStorage.getItem('musicVolume') ? parseFloat(localStorage.getItem('musicVolume')) : 0.2;
-        this.shouldPlayMusic = localStorage.getItem('musicEnabled') === 'true';
+        this.shouldPlayMusic = localStorage.getItem('musicEnabled') !== 'false';
         this.sfxVolume = localStorage.getItem('sfxVolume') ? parseFloat(localStorage.getItem('sfxVolume')) : 50;
         this.sfxEnabled = localStorage.getItem('sfxEnabled') === 'true' ? true : true;
         this.audioElement = null;
@@ -326,10 +326,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Auto-resume music if it was playing before - but only on first user interaction
-    const wasPlaying = localStorage.getItem('musicEnabled') === 'true';
-    let autoResumeOnFirstInteraction = function() {
-        if (wasPlaying && !soundEffects.musicPlaying) {
+    // Auto-play music on load (default is enabled unless explicitly disabled)
+    const shouldAutoPlay = localStorage.getItem('musicEnabled') !== 'false';
+    let autoPlayTriggered = false;
+    
+    let autoPlayOnFirstInteraction = function() {
+        if (!autoPlayTriggered && shouldAutoPlay && !soundEffects.musicPlaying) {
+            autoPlayTriggered = true;
             soundEffects.init();
             soundEffects.playBackgroundMusic();
             if (musicToggleBtn) {
@@ -337,16 +340,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 musicToggleBtn.textContent = '🎵 Music On';
             }
         }
-        // Remove listener after first interaction
-        document.removeEventListener('mousedown', autoResumeOnFirstInteraction);
-        document.removeEventListener('touchstart', autoResumeOnFirstInteraction);
-        document.removeEventListener('click', autoResumeOnFirstInteraction);
+        // Remove listeners after first interaction
+        document.removeEventListener('mousedown', autoPlayOnFirstInteraction);
+        document.removeEventListener('touchstart', autoPlayOnFirstInteraction);
+        document.removeEventListener('click', autoPlayOnFirstInteraction);
     };
     
-    if (wasPlaying) {
-        document.addEventListener('mousedown', autoResumeOnFirstInteraction);
-        document.addEventListener('touchstart', autoResumeOnFirstInteraction);
-        document.addEventListener('click', autoResumeOnFirstInteraction);
+    if (shouldAutoPlay) {
+        // Try to start on first user interaction
+        document.addEventListener('mousedown', autoPlayOnFirstInteraction);
+        document.addEventListener('touchstart', autoPlayOnFirstInteraction);
+        document.addEventListener('click', autoPlayOnFirstInteraction);
     }
 
     const observer = new MutationObserver(function(mutations) {
