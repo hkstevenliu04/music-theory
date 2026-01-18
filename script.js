@@ -371,7 +371,12 @@ function loadProgressions() {
         progressionControls.innerHTML = '';
         if (isOwnerMode()) {
             progressionControls.innerHTML = `<span class="edit-icon" onclick="editCurrentProgression()" title="Edit Progression">✏️</span>`;
+            console.log('✓ Progression controls button added');
+        } else {
+            console.log('Owner mode disabled, no button added');
         }
+    } else {
+        console.warn('progressionControls element not found');
     }
     
     const list = document.getElementById('progressionsList');

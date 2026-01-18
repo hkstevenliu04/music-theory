@@ -1036,7 +1036,7 @@ main {
     right: 30px;
     z-index: 100;
     overflow: visible;
-    display: none;
+    display: none !important;
 }
 
 .progression-controls {
