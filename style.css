@@ -112,6 +112,30 @@ main {
     margin-bottom: 15px;
 }
 
+.fancy-title {
+    font-size: 3.5em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #FF1744 0%, #FF5577 50%, #FF1744 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 23, 68, 0.3);
+    letter-spacing: 2px;
+    animation: glow 3s ease-in-out infinite;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    margin-top: 30px;
+}
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(255, 23, 68, 0.2), 0 0 20px rgba(255, 23, 68, 0.1);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(255, 23, 68, 0.4), 0 0 30px rgba(255, 23, 68, 0.2);
+    }
+}
+
 .content-area p {
     color: #b0b0b0;
     line-height: 1.6;
