@@ -3,7 +3,7 @@ class Router {
     constructor() {
         this.currentPage = 'homePage';
         this.pages = {
-            'index.html': { id: 'homePage', title: 'Music Theory', showBack: false },
+            'index.html': { id: 'homePage', title: 'Fantasia', showBack: false },
             'chord-progression.html': { id: 'chordProgressionPage', title: 'Chord Progression', showBack: true },
             'progression-info.html': { id: 'progressionInfoPage', title: 'Progression Detail', showBack: true },
             'music-theory.html': { id: 'musicTheoryPage', title: 'Music Theory', showBack: true },
