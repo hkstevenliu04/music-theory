@@ -14,7 +14,7 @@ class Router {
     init() {
         // Intercept all navigation links
         document.addEventListener('click', (e) => {
-            const link = e.target.closest('a.nav-link');
+            const link = e.target.closest('a.nav-link, a.nav-box-card');
             if (link && link.href) {
                 e.preventDefault();
                 const href = link.href.split('/').pop().split('?')[0];
