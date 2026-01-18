@@ -84,22 +84,21 @@ function moveTheoryUp(key) {
     if (currentIndex <= 0) return;
     
     // Swap order by recreating object with swapped keys
-    const newDetails = {};
-    const keysToSwap = [keys[currentIndex - 1], keys[currentIndex]];
-    let swapped = false;
-    
+    const newTheory = {};
     keys.forEach(k => {
         if (k === keys[currentIndex - 1]) {
-            newDetails[keys[currentIndex]] = progressionDetails[k];
-            swapped = true;
+            newTheory[keys[currentIndex]] = musicTheory[k];
         } else if (k === keys[currentIndex]) {
-            newDetails[keys[currentIndex - 1]] = progressionDetails[k];
+            newTheory[keys[currentIndex - 1]] = musicTheory[k];
         } else {
-            newDetails[k] = progressionDetails[k];
+            newTheory[k] = musicTheory[k];
         }
     });
     
-    localStorage.setItem('progressionDetails', JSON.stringify(newDetails));
+    localStorage.setItem('musicTheory', JSON.stringify(newTheory));
+    if (typeof db !== 'undefined' && db.ready) {
+        db.set('musicTheory', 'default', newTheory).catch(() => {});
+    }
     loadTheories();
 }
 
@@ -118,18 +117,21 @@ function moveTheoryDown(key) {
     if (currentIndex >= keys.length - 1) return;
     
     // Swap order by recreating object with swapped keys
-    const newDetails = {};
+    const newTheory = {};
     keys.forEach(k => {
         if (k === keys[currentIndex]) {
-            newDetails[keys[currentIndex + 1]] = musicTheory[k];
+            newTheory[keys[currentIndex + 1]] = musicTheory[k];
         } else if (k === keys[currentIndex + 1]) {
-            newDetails[keys[currentIndex]] = musicTheory[k];
+            newTheory[keys[currentIndex]] = musicTheory[k];
         } else {
-            newDetails[k] = musicTheory[k];
+            newTheory[k] = musicTheory[k];
         }
     });
     
-    localStorage.setItem('musicTheory', JSON.stringify(newDetails));
+    localStorage.setItem('musicTheory', JSON.stringify(newTheory));
+    if (typeof db !== 'undefined' && db.ready) {
+        db.set('musicTheory', 'default', newTheory).catch(() => {});
+    }
     loadTheories();
 }
 
