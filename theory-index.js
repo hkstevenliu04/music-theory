@@ -273,9 +273,9 @@ function loadTheories() {
         let editBtn = '';
         let moveBtn = '';
         if (isOwnerMode()) {
-            editBtn = `<button class="theory-title-edit-btn" data-action="edit" data-key="${escapeHtml(item.key)}">✏️</button>`;
-            let upBtn = index > 0 ? `<button class="theory-move-btn" data-action="up" data-key="${escapeHtml(item.key)}">↑</button>` : '';
-            let downBtn = index < theoriesWithContent.length - 1 ? `<button class="theory-move-btn" data-action="down" data-key="${escapeHtml(item.key)}">↓</button>` : '';
+            editBtn = `<button class="theory-title-edit-btn" data-action="edit" data-key="${item.key}">✏️</button>`;
+            let upBtn = index > 0 ? `<button class="theory-move-btn" data-action="up" data-key="${item.key}">↑</button>` : '';
+            let downBtn = index < theoriesWithContent.length - 1 ? `<button class="theory-move-btn" data-action="down" data-key="${item.key}">↓</button>` : '';
             moveBtn = upBtn + downBtn;
         }
         
@@ -392,11 +392,15 @@ function loadTheories() {
         const action = btn.dataset.action;
         const key = btn.dataset.key;
         
+        console.log('Button clicked:', action, key);
+        
         if (action === 'edit') {
             startEditTheory(key);
         } else if (action === 'up') {
+            console.log('Calling moveTheoryUp with key:', key);
             moveTheoryUp(key);
         } else if (action === 'down') {
+            console.log('Calling moveTheoryDown with key:', key);
             moveTheoryDown(key);
         }
     });
