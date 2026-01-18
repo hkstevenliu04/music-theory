@@ -65,18 +65,23 @@ function autoSaveData() {
         timestamp: new Date().toISOString()
     };
     
-    // Try to save to server if available
-    fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    }).catch(() => {
-        // Server not available, data stays in localStorage
-    });
+    // Try to save to server if available (non-blocking)
+    navigator.sendBeacon('/api/save-data', JSON.stringify(data));
 }
 
-// Start auto-save interval (every 60 seconds)
-setInterval(autoSaveData, 60000);
+let autoSaveTimeout;
+function debouncedAutoSave() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(autoSaveData, 2000);
+}
+
+// Auto-save on changes (debounced)
+document.addEventListener('change', debouncedAutoSave);
+document.addEventListener('input', debouncedAutoSave);
+document.addEventListener('click', debouncedAutoSave);
+
+// Also save every 2 minutes
+setInterval(autoSaveData, 120000);
 
 // Also save on page unload
 window.addEventListener('beforeunload', autoSaveData);
