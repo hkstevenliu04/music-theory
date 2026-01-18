@@ -131,11 +131,16 @@ function loadDetailView() {
     
     // Process theory section
     if (detailData.theory) {
-        const theoryLines = detailData.theory.split('\n').filter(l => l.trim());
+        const theoryLines = detailData.theory.split('\n');
         theoryLines.forEach((line) => {
-            const escapedLine = escapeHtml(line);
-            const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-            theoryHtml += `<p class="detail-line">${styledLine}</p>`;
+            if (line.trim()) {
+                const escapedLine = escapeHtml(line);
+                const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                theoryHtml += `<p class="detail-line">${styledLine}</p>`;
+            } else {
+                // Empty line for spacing
+                theoryHtml += `<p class="detail-line" style="height: 10px; margin: 0;"></p>`;
+            }
         });
     } else {
         theoryHtml = '<p style="color: #888;">No theory content yet.</p>';
@@ -143,11 +148,16 @@ function loadDetailView() {
     
     // Process music section
     if (detailData.music) {
-        const musicLines = detailData.music.split('\n').filter(l => l.trim());
+        const musicLines = detailData.music.split('\n');
         musicLines.forEach((line) => {
-            const escapedLine = escapeHtml(line);
-            const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-            musicHtml += `<p class="detail-line">${styledLine}</p>`;
+            if (line.trim()) {
+                const escapedLine = escapeHtml(line);
+                const styledLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                musicHtml += `<p class="detail-line">${styledLine}</p>`;
+            } else {
+                // Empty line for spacing
+                musicHtml += `<p class="detail-line" style="height: 10px; margin: 0;"></p>`;
+            }
         });
     } else {
         musicHtml = '<p style="color: #888;">No music content yet.</p>';
