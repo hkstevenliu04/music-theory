@@ -24,7 +24,7 @@ html, body {
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: #1a1a1a url('bg.gif') no-repeat center center;
+    background: #1a1a1a url('public/bg.gif') no-repeat center center;
     background-size: cover;
     background-attachment: fixed;
     height: 100vh;
