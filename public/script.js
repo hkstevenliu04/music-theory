@@ -216,150 +216,26 @@ function loadProgressions() {
 
 // Toggle group content visibility (accordion - only one open at a time)
 function toggleGroupContent(key) {
-    if (detailControls) {
-        detailControls.style.display = 'none';
-    }
-
-    // Show edit button if in owner mode (for chord progression page)
-    const progressionControls = document.getElementById('progressionControls');
-    if (progressionControls) {
-        progressionControls.innerHTML = '';
-        progressionControls.style.display = 'none';
-    }
-    
-    const list = document.getElementById('progressionsList');
-    if (!list) {
-        console.error('progressionsList element not found!');
+    // If clicking the same group, don't close it
+    if (currentOpenGroup === key) {
         return;
     }
-    list.innerHTML = '';
     
-    // Create wrapper divs
-    const boxesWrapper = document.createElement('div');
-    boxesWrapper.className = 'boxes-wrapper';
-    
-    const contentWrapper = document.createElement('div');
-    contentWrapper.className = 'content-wrapper';
-    
-    // Group progressions by first character(s)
-    const groups = {};
-    progs.forEach((prog, idx) => {
-        let key = prog.title.charAt(0);
-        
-        // Extract 2-character prefix for accidentals (b, #)
-        if ((key === 'b' || key === '#') && prog.title.length > 1) {
-            key = prog.title.substring(0, 2);
-        }
-        
-        // Initialize group if not exists
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-        
-        groups[key].push({ ...prog, origIndex: idx });
-    });
-    
-    // Define display order: ascending from 1 to 7
-    const displayOrder = ['1','b2','2','b3','3','4','#4','5','b6','6','b7','7'];
-    
-    // Also include any other keys not in the main display order
-    const allKeys = Object.keys(groups).sort();
-    allKeys.forEach(key => {
-        if (!displayOrder.includes(key)) {
-            displayOrder.push(key);
+    // Close all other content containers
+    const allContainers = document.querySelectorAll('.group-content-container');
+    allContainers.forEach(container => {
+        if (container.id !== `group-content-${key}`) {
+            container.classList.add('collapsed');
         }
     });
     
-    displayOrder.forEach((key, displayIdx) => {
-        if (groups[key] && groups[key].length > 0) {
-            // Create group box container
-            const groupBox = document.createElement('div');
-            groupBox.className = 'group-box';
-            
-            // Create clickable title box
-            const customNames = JSON.parse(localStorage.getItem(STORAGE_KEYS.GROUP_NAMES)) || {};
-            const groupTitleText = customNames[key] || key;
-            
-            const titleBox = document.createElement('div');
-            titleBox.className = 'group-title-box';
-            titleBox.setAttribute('data-group-key', key);
-            titleBox.onmouseenter = () => toggleGroupContent(key);
-            titleBox.innerHTML = `
-                <span class="group-title-text">${escapeHtml(groupTitleText)}</span>
-            `;
-            
-            groupBox.appendChild(titleBox);
-            boxesWrapper.appendChild(groupBox);
-            
-            // Create collapsible content container (add to contentWrapper)
-            const contentContainer = document.createElement('div');
-            contentContainer.className = 'group-content-container collapsed';
-            contentContainer.id = `group-content-${key}`;
-            contentContainer.setAttribute('data-group-key', key);
-            
-            // Add all progressions to content
-            const groupContentBox = document.createElement('div');
-            groupContentBox.className = 'group-content-box';
-            
-            let allContent = '';
-            
-            groups[key].forEach((prog, idx) => {
-                const contentLines = prog.content.split('\n');
-                let shouldBeCrimson = false;
-                
-                contentLines.forEach((line, lineIdx) => {
-                    // Check if line is ****
-                    if (line.trim() === '****') {
-                        shouldBeCrimson = true;
-                        // Don't display the **** marker itself
-                        return;
-                    }
-                    
-                    if (line.trim()) {
-                        // Parse **text** for styled sections
-                        const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-                        // Check if this line has styled text (**text**)
-                        const hasStyledText = line.includes('**');
-                        
-                        // Only make lines clickable if they have content AND don't contain styling markers
-                        const hasContent = line.trim().length > 0;
-                        const isClickable = hasContent && !hasStyledText;
-                        const clickableClass = isClickable ? 'clickable-line' : '';
-                        const crimsonClass = shouldBeCrimson ? 'crimson-text' : '';
-                        const encodedLine = isClickable ? encodeURIComponent(line.trim()) : '';
-                        allContent += `
-                            <p class="progression-notes ${clickableClass} ${crimsonClass}" ${isClickable ? `onclick="showDetail(${prog.origIndex}, '${encodedLine}')"` : ''}>${styledLine}</p>
-                        `;
-                        
-                        // If this line has styled text, turn on crimson for the next lines
-                        if (hasStyledText) {
-                            shouldBeCrimson = true;
-                        }
-                    } else {
-                        // Empty line resets the shouldBeCrimson flag
-                        shouldBeCrimson = false;
-                        // Empty line for spacing
-                        allContent += `<p class="progression-notes" style="height: 10px; margin: 0;"></p>`;
-                    }
-                });
-            });
-            
-            groupContentBox.innerHTML = allContent;
-            contentContainer.appendChild(groupContentBox);
-            contentWrapper.appendChild(contentContainer);
-        }
-    });
-    
-    list.appendChild(boxesWrapper);
-    list.appendChild(contentWrapper);
-    
-    // Restore the previously open group if it exists
-    if (currentOpenGroup) {
-        const previousContainer = document.getElementById(`group-content-${currentOpenGroup}`);
-        if (previousContainer) {
-            previousContainer.classList.remove('collapsed');
-
-        }
+    // Open current container
+    const contentContainer = document.getElementById(`group-content-${key}`);
+    if (contentContainer) {
+        contentContainer.classList.remove('collapsed');
+        currentOpenGroup = key;
+    } else {
+        console.error('Container not found for key:', key);
     }
 }
 
