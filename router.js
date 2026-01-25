@@ -7,7 +7,6 @@ class Router {
             'chord-progression.html': { id: 'chordProgressionPage', title: 'Chord Progression', showBack: true },
             'progression-info.html': { id: 'progressionInfoPage', title: 'Progression Detail', showBack: true },
             'music-theory.html': { id: 'musicTheoryPage', title: 'Music Theory', showBack: true },
-            'theory-index.html': { id: 'musicTheoryPage', title: 'Music Theory', showBack: true },
             'chord-generator.html': { id: 'chordGeneratorPage', title: 'Chord Generator', showBack: true }
         };
     }
@@ -101,7 +100,7 @@ class Router {
             if (typeof loadProgressions === 'function') loadProgressions();
         } else if (page === 'progression-info.html') {
             if (typeof loadProgressionDetail === 'function') loadProgressionDetail();
-        } else if (page === 'music-theory.html' || page === 'theory-index.html') {
+        } else if (page === 'music-theory.html') {
             if (typeof loadTheories === 'function') loadTheories();
         } else if (page === 'chord-generator.html') {
             if (typeof initChordGenerator === 'function') initChordGenerator();

@@ -46,319 +46,11 @@ const StorageManager = {
 const STORAGE_KEYS = {
     PROGRESSIONS: 'musicProgressions',
     GROUP_NAMES: 'groupCustomNames',
-    SITE_DESCRIPTION: 'siteDescription',
-    OWNER_MODE: 'ownerModeEnabled'
+    SITE_DESCRIPTION: 'siteDescription'
 };
-
-// Owner mode management
-let EDIT_UI_ENABLED = localStorage.getItem(STORAGE_KEYS.OWNER_MODE) === 'true';
-
-function toggleOwnerMode() {
-    const password = prompt('Enter owner password to unlock editing:');
-    if (password === 'live@life04') {
-        EDIT_UI_ENABLED = true;
-        localStorage.setItem(STORAGE_KEYS.OWNER_MODE, 'true');
-        alert('✓ Owner mode enabled! Drag and delete buttons are now visible.');
-        location.reload();
-    } else if (password !== null) {
-        alert('✗ Incorrect password.');
-    }
-}
-
-function disableOwnerMode() {
-    EDIT_UI_ENABLED = false;
-    localStorage.setItem(STORAGE_KEYS.OWNER_MODE, 'false');
-    alert('✓ Owner mode disabled.');
-    location.reload();
-}
-
-// Auto-restore data from JSON file on page load if localStorage is empty
-function autoRestoreFromBackup() {
-    const hasProgressions = localStorage.getItem(STORAGE_KEYS.PROGRESSIONS);
-    const hasTheories = localStorage.getItem('musicTheory');
-    
-    // If data exists, resolve immediately
-    if (hasProgressions && hasTheories) {
-        console.log('✓ Data already in localStorage, skipping restore');
-        return Promise.resolve();
-    }
-    
-    console.log('Attempting to restore from backup JSON...');
-    
-    // Try to restore from backup JSON file
-    return fetch('music-theory-data.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Backup file not found');
-            return response.json();
-        })
-        .then(data => {
-            console.log('✓ Backup file loaded, restoring...');
-            // The backup file already has stringified JSON values, so don't stringify again
-            if (data.progressions) {
-                // If it's already a string, use it directly; if it's an object, stringify it
-                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, 
-                    typeof data.progressions === 'string' ? data.progressions : JSON.stringify(data.progressions));
-                console.log('✓ Progressions restored');
-            }
-            if (data.progressionDetails) {
-                localStorage.setItem('progressionDetails', 
-                    typeof data.progressionDetails === 'string' ? data.progressionDetails : JSON.stringify(data.progressionDetails));
-            }
-            if (data.musicTheory) {
-                localStorage.setItem('musicTheory', 
-                    typeof data.musicTheory === 'string' ? data.musicTheory : JSON.stringify(data.musicTheory));
-                console.log('✓ Music theories restored');
-            }
-            if (data.theoryOrder) {
-                localStorage.setItem('theoryOrder', 
-                    typeof data.theoryOrder === 'string' ? data.theoryOrder : JSON.stringify(data.theoryOrder));
-            }
-            if (data.groupNames) {
-                localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, 
-                    typeof data.groupNames === 'string' ? data.groupNames : JSON.stringify(data.groupNames));
-            }
-            // Don't restore siteDescription from backup - always use fresh defaults or user-set values
-            console.log('✓ All data restored from backup');
-        })
-        .catch(err => {
-            console.debug('Backup restore failed:', err.message);
-        });
-}
-
-// Auto-save functionality - saves data every 3 minutes
-function autoSaveData() {
-    const data = {
-        progressions: localStorage.getItem(STORAGE_KEYS.PROGRESSIONS),
-        progressionDetails: localStorage.getItem('progressionDetails'),
-        musicTheory: localStorage.getItem('musicTheory'),
-        theoryOrder: localStorage.getItem('theoryOrder'),
-        groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
-        settings: {
-            musicVolume: localStorage.getItem('musicVolume'),
-            musicEnabled: localStorage.getItem('musicEnabled'),
-            sfxVolume: localStorage.getItem('sfxVolume'),
-            sfxEnabled: localStorage.getItem('sfxEnabled')
-        },
-        timestamp: new Date().toISOString()
-    };
-    
-    // Try to save to server if available (non-blocking)
-    fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        keepalive: true
-    }).catch(err => {
-        // Silently fail - server may not be running
-        console.debug('Auto-save to server failed (expected if server not running)');
-    });
-}
-
-// Edit current progression
-function editCurrentProgression() {
-    if (!isOwnerMode()) {
-        alert('Owner mode not enabled');
-        return;
-    }
-    openGroupEditModal();
-}
-
-// Open modal to edit group content
-function openGroupEditModal() {
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    
-    // Get groups
-    const groups = {};
-    progs.forEach((prog, idx) => {
-        let key = prog.title.charAt(0);
-        if ((key === 'b' || key === '#') && prog.title.length > 1) {
-            key = prog.title.substring(0, 2);
-        }
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-        groups[key].push({ ...prog, origIndex: idx });
-    });
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.id = 'groupEditModal';
-    modal.className = 'group-edit-modal';
-    
-    let groupOptionsHtml = '';
-    const displayOrder = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'];
-    displayOrder.forEach(key => {
-        if (groups[key]) {
-            groupOptionsHtml += `<option value="${key}">${key}</option>`;
-        }
-    });
-    
-    modal.innerHTML = `
-        <div class="group-edit-modal-content">
-            <h2>Edit Group</h2>
-            <label for="groupSelect">Select Group:</label>
-            <select id="groupSelect" onchange="updateGroupPreview()">
-                ${groupOptionsHtml}
-            </select>
-            <div id="groupProgsList"></div>
-            <div class="group-edit-modal-buttons">
-                <button onclick="saveGroupEdit()" class="group-save-btn">Save</button>
-                <button onclick="closeGroupEditModal()" class="group-cancel-btn">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Load first group
-    updateGroupPreview();
-}
-
-function updateGroupPreview() {
-    const groupSelect = document.getElementById('groupSelect');
-    const selectedGroup = groupSelect.value;
-    
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    
-    // Find all progressions in this group
-    const groupProgs = progs.filter(prog => {
-        let key = prog.title.charAt(0);
-        if ((key === 'b' || key === '#') && prog.title.length > 1) {
-            key = prog.title.substring(0, 2);
-        }
-        return key === selectedGroup;
-    });
-    
-    // Display each progression
-    let html = '';
-    groupProgs.forEach((prog, idx) => {
-        html += `
-            <div class="prog-edit-item">
-                <textarea class="prog-edit-textarea" data-title="${prog.title}">${prog.content}</textarea>
-            </div>
-        `;
-    });
-    
-    document.getElementById('groupProgsList').innerHTML = html;
-}
-
-function saveGroupEdit() {
-    const textareas = document.querySelectorAll('.prog-edit-textarea');
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    let updated = false;
-    
-    textareas.forEach(textarea => {
-        const title = textarea.getAttribute('data-title');
-        const newContent = textarea.value;
-        const progIndex = progs.findIndex(p => p.title === title);
-        
-        if (progIndex !== -1 && progs[progIndex].content !== newContent) {
-            progs[progIndex].content = newContent;
-            updated = true;
-        }
-    });
-    
-    if (updated) {
-        localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
-        if (typeof db !== 'undefined' && db.ready) {
-            db.set('progressions', 'default', progs).catch(() => {});
-        }
-        console.log('✓ Group content saved');
-        closeGroupEditModal();
-        loadProgressions(); // Reload to show changes
-    } else {
-        alert('No changes were made');
-    }
-}
-
-function closeGroupEditModal() {
-    const modal = document.getElementById('groupEditModal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-// Manual save with audio feedback
-function manualSaveData() {
-    const data = {
-        progressions: localStorage.getItem(STORAGE_KEYS.PROGRESSIONS),
-        progressionDetails: localStorage.getItem('progressionDetails'),
-        musicTheory: localStorage.getItem('musicTheory'),
-        theoryOrder: localStorage.getItem('theoryOrder'),
-        groupNames: localStorage.getItem(STORAGE_KEYS.GROUP_NAMES),
-        siteDescription: localStorage.getItem(STORAGE_KEYS.SITE_DESCRIPTION),
-        settings: {
-            musicVolume: localStorage.getItem('musicVolume'),
-            musicEnabled: localStorage.getItem('musicEnabled'),
-            sfxVolume: localStorage.getItem('sfxVolume'),
-            sfxEnabled: localStorage.getItem('sfxEnabled')
-        },
-        timestamp: new Date().toISOString()
-    };
-    
-    // Save to server
-    fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        keepalive: true
-    }).then(() => {
-        // Success - play success sound
-        if (typeof soundEffects !== 'undefined') {
-            soundEffects.playSoftBeepSound();
-        }
-        console.log('✓ Data saved successfully');
-    }).catch(err => {
-        // Failed - play error sound
-        if (typeof soundEffects !== 'undefined') {
-            soundEffects.playClickSound();
-        }
-        console.log('✗ Save failed (server may not be running)');
-    });
-}
-
-// Config: owner mode based on localStorage
-// Initialized above with STORAGE_KEYS.OWNER_MODE check
 
 // Track currently open group for accordion
 let currentOpenGroup = null;
-
-// Owner mode detection based on localStorage flag
-function isOwnerMode() {
-    return EDIT_UI_ENABLED;
-}
-
-// Toggle group content visibility (accordion - only one open at a time)
-function toggleGroupContent(key) {
-
-    
-    // If clicking the same group, don't close it
-    if (currentOpenGroup === key) {
-
-        return;
-    }
-    
-    // Close all other content containers
-    const allContainers = document.querySelectorAll('.group-content-container');
-    allContainers.forEach(container => {
-        if (container.id !== `group-content-${key}`) {
-            container.classList.add('collapsed');
-
-        }
-    });
-    
-    // Open current container
-    const contentContainer = document.getElementById(`group-content-${key}`);
-
-    
-    if (contentContainer) {
-        contentContainer.classList.remove('collapsed');
-        currentOpenGroup = key;
-
-    } else {
-        console.error('Container not found for key:', key);
-    }
-}
 
 // Initialize progressions if empty
 function initializeProgressions() {
@@ -370,10 +62,11 @@ function initializeProgressions() {
     return progs;
 }
 
-
 function loadProgressions() {
+    console.log('loadProgressions() called');
     initializeProgressions();
     const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    console.log('Progressions loaded:', progs.length, 'items');
 
     // Hide detail-controls on this page
     const detailControls = document.getElementById('detailControls');
@@ -381,7 +74,7 @@ function loadProgressions() {
         detailControls.style.display = 'none';
     }
 
-    // Show edit button if in owner mode (for chord progression page)
+    // Hide progression controls
     const progressionControls = document.getElementById('progressionControls');
     if (progressionControls) {
         progressionControls.innerHTML = '';
@@ -393,6 +86,7 @@ function loadProgressions() {
         console.error('progressionsList element not found!');
         return;
     }
+    console.log('Found progressionsList element');
     list.innerHTML = '';
     
     // Create wrapper divs
@@ -449,11 +143,6 @@ function loadProgressions() {
                 <span class="group-title-text">${escapeHtml(groupTitleText)}</span>
             `;
             
-            // Make title editable if owner mode
-            if (isOwnerMode()) {
-                titleBox.style.cursor = 'pointer';
-            }
-            
             groupBox.appendChild(titleBox);
             boxesWrapper.appendChild(groupBox);
             
@@ -494,7 +183,7 @@ function loadProgressions() {
                         const crimsonClass = shouldBeCrimson ? 'crimson-text' : '';
                         const encodedLine = isClickable ? encodeURIComponent(line.trim()) : '';
                         allContent += `
-                            <p class="progression-notes ${clickableClass} ${crimsonClass}" ${isClickable ? `onclick="showDetail(${prog.origIndex}, '${encodedLine}')"` : ''}>${styledLine}</p>
+                            <p class="progression-notes ${clickableClass} ${crimsonClass}" ${isClickable ? `data-prog-index="${prog.origIndex}" data-line="${encodedLine}"` : ''}>${styledLine}</p>
                         `;
                         
                         // If this line has styled text, turn on crimson for the next lines
@@ -519,115 +208,70 @@ function loadProgressions() {
     list.appendChild(boxesWrapper);
     list.appendChild(contentWrapper);
     
+    console.log('Appended', boxesWrapper.children.length, 'boxes and', contentWrapper.children.length, 'content containers');
+    console.log('boxesWrapper display:', window.getComputedStyle(boxesWrapper).display);
+    console.log('First box element:', boxesWrapper.firstElementChild);
+    
+    // Debug: Check if CSS is loading properly
+    if (boxesWrapper.firstElementChild) {
+        const firstBox = boxesWrapper.firstElementChild.firstElementChild;
+        if (firstBox) {
+            const styles = window.getComputedStyle(firstBox);
+            console.log('First group-title-box styles:', {
+                width: styles.width,
+                height: styles.height,
+                backgroundColor: styles.backgroundColor,
+                display: styles.display,
+                visibility: styles.visibility
+            });
+        }
+    }
+    
+    // Add event delegation for clickable lines
+    list.addEventListener('click', (e) => {
+        const clickableLine = e.target.closest('.clickable-line');
+        if (clickableLine) {
+            const progIndex = parseInt(clickableLine.getAttribute('data-prog-index'));
+            const encodedLine = clickableLine.getAttribute('data-line');
+            showDetail(progIndex, encodedLine);
+        }
+    });
+    
     // Restore the previously open group if it exists
     if (currentOpenGroup) {
         const previousContainer = document.getElementById(`group-content-${currentOpenGroup}`);
         if (previousContainer) {
             previousContainer.classList.remove('collapsed');
-
         }
     }
 }
 
-// Group edit mode
-function startGroupEdit(groupKey) {
-    if (!isOwnerMode()) return;
-    
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    const contentContainer = document.getElementById(`group-content-${groupKey}`);
-    const progContainer = contentContainer.querySelector('.group-content-box');
-    
-    // Filter progressions that belong to this group
-    const groupProgresses = progs.filter(p => {
-        const firstChar = p.title.charAt(0);
-        const isSingleChar = firstChar === groupKey;
-        const isTwoChar = groupKey.length === 2 && p.title.substring(0, 2) === groupKey;
-        return isSingleChar || isTwoChar;
-    });
-    
-    const customNames = JSON.parse(localStorage.getItem(STORAGE_KEYS.GROUP_NAMES)) || {};
-    const currentGroupName = customNames[groupKey] || groupKey;
-    
-    // Combine all progressions into one text
-    let combinedAllContent = '';
-    groupProgresses.forEach((prog) => {
-        combinedAllContent += prog.content + '\n\n';
-    });
-    combinedAllContent = combinedAllContent.trim();
-
-    let html = `
-        <div class="group-edit-form">
-            <div class="group-name-edit">
-                <label>Group Name:</label>
-                <input type="text" id="group-name-edit" value="${escapeHtml(currentGroupName)}" placeholder="Group name" />
-            </div>
-            <div class="progression-edit-row">
-                <label style="display: block; margin-bottom: 8px; color: #b0b0b0;">Edit content (use <strong>**text**</strong> to style words as titles):</label>
-                <textarea class="group-edit-combined" id="group-content-all" placeholder="Enter your content here...&#10;Use **text** to make styled titles" style="min-height: 300px;">${escapeHtml(combinedAllContent)}</textarea>
-            </div>
-        </div>
-        <div class="group-edit-controls">
-            <button class="group-edit-save" onclick="saveGroupEditCombined('${escapeHtml(groupKey).replace(/'/g, "\\'")}')" >Save All</button>
-            <button class="group-edit-cancel" onclick="cancelGroupEdit('${escapeHtml(groupKey).replace(/'/g, "\\'")}')" >Cancel</button>
-        </div>
-    `;
-    
-    progContainer.innerHTML = html;
-}
-
-function saveGroupEditCombined(groupKey) {
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    const customNames = JSON.parse(localStorage.getItem(STORAGE_KEYS.GROUP_NAMES)) || {};
-    
-    // Save group name if changed
-    const newGroupName = document.getElementById('group-name-edit').value.trim();
-    if (newGroupName !== '') {
-        customNames[groupKey] = newGroupName;
-    } else {
-        delete customNames[groupKey];
-    }
-    
-    // Get the content
-    const content = document.getElementById('group-content-all').value.trim();
-    if (!content) {
-        alert('Please enter content!');
+// Toggle group content visibility (accordion - only one open at a time)
+function toggleGroupContent(key) {
+    // If clicking the same group, don't close it
+    if (currentOpenGroup === key) {
         return;
     }
     
-    // Create a single progression object with the group key as title
-    const newProgressions = [{
-        title: groupKey,
-        content: content,
-        displayTitle: ''
-    }];
-    
-    // Remove all progressions in this group from progs array
-    for (let i = progs.length - 1; i >= 0; i--) {
-        const prog = progs[i];
-        const firstChar = prog.title.charAt(0);
-        const isSingleChar = firstChar === groupKey;
-        const isTwoChar = groupKey.length === 2 && prog.title.substring(0, 2) === groupKey;
-        
-        if (isSingleChar || isTwoChar) {
-            progs.splice(i, 1);
+    // Close all other content containers
+    const allContainers = document.querySelectorAll('.group-content-container');
+    allContainers.forEach(container => {
+        if (container.id !== `group-content-${key}`) {
+            container.classList.add('collapsed');
         }
-    }
-    
-    // Add the new progressions to the end
-    newProgressions.forEach(prog => {
-        progs.push(prog);
     });
     
-    localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progs));
-    localStorage.setItem(STORAGE_KEYS.GROUP_NAMES, JSON.stringify(customNames));
-    StorageManager.set('progressions', 'default', progs);
-    StorageManager.set('groupNames', 'default', customNames);
-    loadProgressions();
+    // Open current container
+    const contentContainer = document.getElementById(`group-content-${key}`);
+    if (contentContainer) {
+        contentContainer.classList.remove('collapsed');
+        currentOpenGroup = key;
+    } else {
+        console.error('Container not found for key:', key);
+    }
 }
 
-function cancelGroupEdit(groupKey) {
-    loadProgressions();
-}
+
 
 // Show detail page for a progression
 function showDetail(index, lineContent) {
@@ -655,9 +299,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!localStorage.getItem(STORAGE_KEYS.SITE_DESCRIPTION)) {
         localStorage.setItem(STORAGE_KEYS.SITE_DESCRIPTION, 'Learn and explore chord progressions and music theory concepts.');
     }
-    
-    // Auto-restore from backup JSON on page load
-    await autoRestoreFromBackup();
     
     // Auto-recover progression details from IndexedDB if localStorage is empty
     let progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
@@ -696,12 +337,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     // Only load progressions if the progressionsList element exists
     if (document.getElementById('progressionsList')) {
+        console.log('Starting loadProgressions from DOMContentLoaded');
         loadProgressions();
         // Expand group "1" by default
-        const group1Box = document.querySelector('[data-group-key="1"]');
-        if (group1Box) {
-            toggleGroupContent('1');
-        }
+        setTimeout(() => {
+            const group1Container = document.getElementById('group-content-1');
+            if (group1Container) {
+                console.log('Expanding group-content-1');
+                group1Container.classList.remove('collapsed');
+                currentOpenGroup = '1';
+            } else {
+                console.error('group-content-1 not found after timeout');
+            }
+        }, 100);
+    } else {
+        console.log('progressionsList element not found, skipping loadProgressions');
     }
 });
 
@@ -719,34 +369,6 @@ function loadSiteDescription() {
     const siteDescElement = document.getElementById('siteDescription');
     if (siteDescElement) {
         siteDescElement.textContent = savedDescription;
-    }
-    
-    // Show edit button in owner mode (only if element exists)
-    if (isOwnerMode()) {
-        const editBtn = document.getElementById('editDescBtn');
-        if (editBtn) {
-            editBtn.style.display = 'inline-block';
-            editBtn.onclick = editSiteDescription;
-        }
-        const siteDesc = document.getElementById('siteDescription');
-        if (siteDesc) {
-            siteDesc.style.cursor = 'pointer';
-            siteDesc.onclick = editSiteDescription;
-        }
-    }
-}
-
-// Edit site description
-function editSiteDescription() {
-    if (!isOwnerMode()) return;
-    
-    const currentDescription = localStorage.getItem('siteDescription') || 'Learn and explore chord progressions and music theory concepts.';
-    const newDescription = prompt('Edit site description:', currentDescription);
-    
-    if (newDescription !== null && newDescription.trim() !== '') {
-        localStorage.setItem('siteDescription', newDescription.trim());
-        StorageManager.set('settings', 'siteDescription', newDescription.trim());
-        loadSiteDescription();
     }
 }
 
