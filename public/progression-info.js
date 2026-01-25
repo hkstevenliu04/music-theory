@@ -257,38 +257,67 @@ function loadDetailView() {
         controlsDiv.innerHTML = ''; // Clear first
     }
     
-    // Get detail content keyed by unique key (progIndex:lineTitle)
-    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
-    
-    // Try multiple key formats to find the data
-    let detailData = null;
-    let keyUsed = null;
-    
-    // First try: currentUniqueKey (new format)
-    if (currentUniqueKey && progressionDetails[currentUniqueKey]) {
-        detailData = progressionDetails[currentUniqueKey];
-        keyUsed = currentUniqueKey;
-    }
-    // Second try: currentLineTitle (old format or direct match)
-    else if (currentLineTitle && progressionDetails[currentLineTitle]) {
-        detailData = progressionDetails[currentLineTitle];
-        keyUsed = currentLineTitle;
-    }
-    // Third try: search for any key that contains the currentLineTitle
-    else if (currentLineTitle) {
-        const matchingKey = Object.keys(progressionDetails).find(key => 
-            key.includes(currentLineTitle) || currentLineTitle.includes(key.split('ㅤㅤ')[0])
-        );
-        if (matchingKey) {
-            detailData = progressionDetails[matchingKey];
-            keyUsed = matchingKey;
-        }
-    }
-    
-    // If still not found, use empty object
-    if (!detailData) {
-        detailData = { theory: '', music: '', genre: '' };
-    }
+    // Load from music-theory-data.json
+    fetch('music-theory-data.json')
+        .then(response => response.json())
+        .then(data => {
+            let detailData = { theory: '', music: '', genre: '' };
+            
+            // Find matching chord progression in chordProgressions
+            if (data.chordProgressions && Array.isArray(data.chordProgressions)) {
+                for (const group of data.chordProgressions) {
+                    if (group.progressions && Array.isArray(group.progressions)) {
+                        for (const prog of group.progressions) {
+                            // Build chord string from chords array
+                            let chordsStr = '';
+                            if (Array.isArray(prog.chords)) {
+                                if (Array.isArray(prog.chords[0])) {
+                                    // Nested array format like [["1", "5m", "17"], ["4"], ["5"], ["6m"]]
+                                    chordsStr = prog.chords.map(group => group.join(' ')).join(' ');
+                                } else {
+                                    // Simple array format
+                                    chordsStr = prog.chords.join(' ');
+                                }
+                            }
+                            
+                            // Check if this matches the selected progression
+                            if (chordsStr === currentLineTitle || chordsStr.includes(currentLineTitle)) {
+                                // Build theory array as bracketed list
+                                let theoryStr = '';
+                                if (prog.theory && Array.isArray(prog.theory)) {
+                                    theoryStr = prog.theory.map(t => `[${t}]`).join(' ');
+                                }
+                                detailData.theory = theoryStr;
+                                
+                                // Build music array
+                                let musicStr = '';
+                                if (prog.music && Array.isArray(prog.music)) {
+                                    musicStr = prog.music.map(m => {
+                                        let line = '';
+                                        if (m.artist) line += m.artist;
+                                        if (m.title) line += (line ? ' - ' : '') + m.title;
+                                        if (m.part) line += (line ? ' (' : '(') + m.part + ')';
+                                        if (m.genre) line += (line ? ' [' : '[') + m.genre + ']';
+                                        return line;
+                                    }).join('\n');
+                                }
+                                detailData.music = musicStr;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            renderDetailView(detailData);
+        })
+        .catch(error => {
+            console.error('Failed to load music-theory-data.json:', error);
+            renderDetailView({ theory: '', music: '', genre: '' });
+        });
+}
+
+function renderDetailView(detailData) {
     
     let theoryHtml = '';
     let musicHtml = '';
