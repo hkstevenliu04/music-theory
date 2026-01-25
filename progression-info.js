@@ -263,7 +263,9 @@ function loadDetailView() {
         .then(data => {
             let detailData = { theory: '', music: '', genre: '' };
             
-            console.log('Looking for progression:', currentLineTitle);
+            // Normalize the currentLineTitle: remove " - " and trim extra spaces
+            const normalizedTitle = currentLineTitle.replace(/\s*-\s*/g, ' ').trim();
+            console.log('Looking for progression:', currentLineTitle, '-> normalized:', normalizedTitle);
             
             // Find matching chord progression in chordProgressions
             if (data.chordProgressions && Array.isArray(data.chordProgressions)) {
@@ -282,11 +284,12 @@ function loadDetailView() {
                                 }
                             }
                             
-                            console.log('Checking progression:', chordsStr, 'Match:', chordsStr === currentLineTitle);
+                            // Also normalize the checked progression
+                            const normalizedChords = chordsStr.replace(/\s*-\s*/g, ' ').trim();
+                            const isMatch = normalizedChords === normalizedTitle;
                             
-                            // Check if this matches the selected progression
-                            if (chordsStr === currentLineTitle || chordsStr.includes(currentLineTitle)) {
-                                console.log('Found matching progression!');
+                            if (isMatch) {
+                                console.log('Found matching progression:', chordsStr);
                                 // Build theory array as bracketed list
                                 let theoryStr = '';
                                 if (prog.theory && Array.isArray(prog.theory)) {
