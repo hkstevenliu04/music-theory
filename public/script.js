@@ -212,6 +212,21 @@ function loadProgressions() {
     console.log('boxesWrapper display:', window.getComputedStyle(boxesWrapper).display);
     console.log('First box element:', boxesWrapper.firstElementChild);
     
+    // Debug: Check if CSS is loading properly
+    if (boxesWrapper.firstElementChild) {
+        const firstBox = boxesWrapper.firstElementChild.firstElementChild;
+        if (firstBox) {
+            const styles = window.getComputedStyle(firstBox);
+            console.log('First group-title-box styles:', {
+                width: styles.width,
+                height: styles.height,
+                backgroundColor: styles.backgroundColor,
+                display: styles.display,
+                visibility: styles.visibility
+            });
+        }
+    }
+    
     // Add event delegation for clickable lines
     list.addEventListener('click', (e) => {
         const clickableLine = e.target.closest('.clickable-line');
