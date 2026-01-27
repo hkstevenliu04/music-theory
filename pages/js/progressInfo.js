@@ -1,27 +1,30 @@
-// Migrate old content format to new two-section format
-function migrateOldContent() {
-    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
-    let needsSave = false;
-    
-    for (const key in progressionDetails) {
-        const item = progressionDetails[key];
-        // If it's a string (old format), convert to new object format
-        if (typeof item === 'string') {
-            progressionDetails[key] = {
-                theory: item,
-                music: ''
-            };
-            needsSave = true;
-        }
-    }
-    
-    if (needsSave) {
-        localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
-    }
+// Get progression info data from DataService
+let progressionInfoData = {};
+
+async function loadProgressionInfo() {
+    progressionInfoData = await DataService.getProgressionInfo();
+    return progressionInfoData;
 }
 
 // Initialize on load
-migrateOldContent();
+loadProgressionInfo();
+
+// Helper: Convert chord array to progression ID
+// [["6m"], ["4"], ["5"], ["1"]] → "6m-4-5-1"
+// [["6m", "4", "5"], ["1"], ["5/7"], ["1"]] → "6m,4,5-1-5/7-1"
+function chordsToProgressionId(chords) {
+    if (!Array.isArray(chords)) return '';
+    
+    // Handle nested arrays (bar format)
+    if (Array.isArray(chords[0])) {
+        return chords.map(bar => 
+            Array.isArray(bar) ? bar.join(',') : bar
+        ).join('-');
+    }
+    
+    // Backward compatibility: simple array
+    return chords.join('-');
+}
 
 // Check owner mode
 function isOwnerMode() {
@@ -105,33 +108,33 @@ function startDetailEdit() {
     isEditingDetail = true;
     
     // Add a small delay to prevent rapid double-clicks from causing issues
-    setTimeout(() => {
-        const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
+    setTimeout(async () => {
+        const progressionInfo = await DataService.getProgressionInfo();
         
         // Try multiple key formats to find the data (same logic as loadDetailView)
         let detailData = null;
         let keyToUse = null;
         
-        if (currentUniqueKey && progressionDetails[currentUniqueKey]) {
-            detailData = progressionDetails[currentUniqueKey];
+        if (currentUniqueKey && progressionInfo[currentUniqueKey]) {
+            detailData = progressionInfo[currentUniqueKey];
             keyToUse = currentUniqueKey;
         }
-        else if (currentLineTitle && progressionDetails[currentLineTitle]) {
-            detailData = progressionDetails[currentLineTitle];
+        else if (currentLineTitle && progressionInfo[currentLineTitle]) {
+            detailData = progressionInfo[currentLineTitle];
             keyToUse = currentLineTitle;
         }
         else if (currentLineTitle) {
-            const matchingKey = Object.keys(progressionDetails).find(key => 
+            const matchingKey = Object.keys(progressionInfo).find(key => 
                 key.includes(currentLineTitle) || currentLineTitle.includes(key.split('ㅤㅤ')[0])
             );
             if (matchingKey) {
-                detailData = progressionDetails[matchingKey];
+                detailData = progressionInfo[matchingKey];
                 keyToUse = matchingKey;
             }
         }
         
         if (!detailData) {
-            detailData = { theory: '', music: '', genre: '' };
+            detailData = { theory: '', music: [] };
             keyToUse = currentUniqueKey || currentLineTitle;
         }
         
@@ -150,6 +153,8 @@ function startDetailEdit() {
         
         detailContent.innerHTML = '';
         
+        const musicJson = JSON.stringify(detailData.music || [], null, 2);
+        
         detailContent.innerHTML = `
             <div class="detail-box">
                 <div class="detail-edit-form">
@@ -158,12 +163,9 @@ function startDetailEdit() {
                         <textarea class="detail-edit-theory" name="theory" id="detail-edit-theory" style="min-height: 150px;">${escapeHtml(detailData.theory || '')}</textarea>
                     </div>
                     <div class="progression-edit-row">
-                        <label>Music:</label>
-                        <textarea class="detail-edit-music" name="music" id="detail-edit-music" style="min-height: 150px;">${escapeHtml(detailData.music || '')}</textarea>
-                    </div>
-                    <div class="progression-edit-row">
-                        <label>Genre:</label>
-                        <textarea class="detail-edit-genre" name="genre" id="detail-edit-genre" style="min-height: 150px;">${escapeHtml(detailData.genre || '')}</textarea>
+                        <label>Music Examples (JSON):</label>
+                        <textarea class="detail-edit-music" name="music" id="detail-edit-music" style="min-height: 200px; font-family: monospace;">${escapeHtml(musicJson)}</textarea>
+                        <small style="color: #666; margin-top: 4px; display: block;">Format: [{"title": "Song", "artist": "Artist", "part": "verse", "genre": "rock"}]</small>
                     </div>
                     <div class="detail-edit-controls">
                         <button class="detail-save-btn" id="detailSaveBtn">Save</button>
@@ -184,28 +186,38 @@ function startDetailEdit() {
 }
 
 // Save detail edit
-function saveDetailEdit() {
+async function saveDetailEdit() {
     const theory = document.querySelector('.detail-edit-theory').value.trim();
-    const music = document.querySelector('.detail-edit-music').value.trim();
-    const genre = document.querySelector('.detail-edit-genre').value.trim();
+    const musicText = document.querySelector('.detail-edit-music').value.trim();
+    
+    // Parse music JSON
+    let music = [];
+    if (musicText) {
+        try {
+            music = JSON.parse(musicText);
+            if (!Array.isArray(music)) {
+                alert('Music must be an array of objects. Example: [{"title": "Song", "artist": "Artist", "part": "verse", "genre": "rock"}]');
+                return;
+            }
+        } catch (error) {
+            alert('Invalid JSON format for music. Please check your syntax.');
+            return;
+        }
+    }
     
     // Validate: at least one field must have content
-    if (!theory && !music && !genre) {
-        alert('Please enter content in at least one section (Theory, Music, or Genre).');
+    if (!theory && music.length === 0) {
+        alert('Please enter content in at least one section (Theory or Music Examples).');
         return;
     }
     
-    const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
+    const progressionInfo = await DataService.getProgressionInfo();
     const keyToSave = currentUniqueKey || currentLineTitle;
-    progressionDetails[keyToSave] = { theory, music, genre };
-    localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
+    progressionInfo[keyToSave] = { theory, music };
     
-    // Also save to IndexedDB
-    if (typeof db !== 'undefined' && db.ready) {
-        db.set('progressionDetails', 'default', progressionDetails).catch(err => {
-            console.warn('IndexedDB save failed:', err);
-        });
-    }
+    // Note: In a real app, you would save this to server
+    // For now, it updates the in-memory cache
+    console.log('Saved progression info:', keyToSave, progressionInfo[keyToSave]);
     
     isEditingDetail = false;
     loadDetailView();
@@ -218,21 +230,17 @@ function cancelDetailEdit() {
 }
 
 // Delete progression detail
-function deleteDetailProgression() {
+async function deleteDetailProgression() {
     if (!isOwnerMode()) return;
     
     if (confirm('Are you sure you want to delete this detail content?')) {
-        const progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
+        const progressionInfo = await DataService.getProgressionInfo();
         const keyToDelete = currentUniqueKey || currentLineTitle;
-        delete progressionDetails[keyToDelete];
-        localStorage.setItem('progressionDetails', JSON.stringify(progressionDetails));
+        delete progressionInfo[keyToDelete];
         
-        // Sync to IndexedDB
-        if (typeof db !== 'undefined' && db.ready) {
-            db.set('progressionDetails', 'default', progressionDetails).catch(err => {
-                console.warn('IndexedDB sync failed:', err);
-            });
-        }
+        // Note: In a real app, you would delete this from server
+        // For now, it updates the in-memory cache
+        console.log('Deleted progression info:', keyToDelete);
         
         isEditingDetail = false;
         loadDetailView();
@@ -257,69 +265,31 @@ function loadDetailView() {
         controlsDiv.innerHTML = ''; // Clear first
     }
     
-    // Load from chord-progressions.json
-    fetch('pages/json/chordProgressions.json')
-        .then(response => response.json())
-        .then(data => {
-            let detailData = { theory: '', music: '', genre: '' };
+    // Use DataService to get progression info
+    DataService.getProgressionInfo()
+        .then(progressionInfo => {
+            let detailData = { theory: '', music: [] };
             
-            // Normalize the currentLineTitle: remove " - " and trim extra spaces
-            const normalizedTitle = currentLineTitle.replace(/\s*-\s*/g, ' ').trim();
+            // Try to find data by unique key or title
+            const keyToLoad = currentUniqueKey || currentLineTitle;
             
-            // Find matching chord progression in chordProgressions
-            if (Array.isArray(data)) {
-                for (const group of data) {
-                    if (group.progressions && Array.isArray(group.progressions)) {
-                        for (const prog of group.progressions) {
-                            // Build chord string from chords array
-                            let chordsStr = '';
-                            if (Array.isArray(prog.chords)) {
-                                if (Array.isArray(prog.chords[0])) {
-                                    // Nested array format like [["1", "5m", "17"], ["4"], ["5"], ["6m"]]
-                                    chordsStr = prog.chords.map(group => group.join(' ')).join(' ');
-                                } else {
-                                    // Simple array format
-                                    chordsStr = prog.chords.join(' ');
-                                }
-                            }
-                            
-                            // Also normalize the checked progression
-                            const normalizedChords = chordsStr.replace(/\s*-\s*/g, ' ').trim();
-                            const isMatch = normalizedChords === normalizedTitle;
-                            
-                            if (isMatch) {
-                                // Build theory array as bracketed list
-                                let theoryStr = '';
-                                if (prog.theory && Array.isArray(prog.theory)) {
-                                    theoryStr = prog.theory.map(t => `[${t}]`).join(' ');
-                                }
-                                detailData.theory = theoryStr;
-                                
-                                // Build music array
-                                let musicStr = '';
-                                if (prog.music && Array.isArray(prog.music)) {
-                                    musicStr = prog.music.map(m => {
-                                        let line = '';
-                                        if (m.artist) line += m.artist;
-                                        if (m.title) line += (line ? ' - ' : '') + m.title;
-                                        if (m.part) line += (line ? ' (' : '(') + m.part + ')';
-                                        if (m.genre) line += (line ? ' [' : '[') + m.genre + ']';
-                                        return line;
-                                    }).join('\n');
-                                }
-                                detailData.music = musicStr;
-                                break;
-                            }
-                        }
-                    }
+            if (progressionInfo[keyToLoad]) {
+                detailData = progressionInfo[keyToLoad];
+            } else {
+                // Try fuzzy match
+                const matchingKey = Object.keys(progressionInfo).find(key => 
+                    key.includes(currentLineTitle) || currentLineTitle.includes(key)
+                );
+                if (matchingKey) {
+                    detailData = progressionInfo[matchingKey];
                 }
             }
             
             renderDetailView(detailData);
         })
         .catch(error => {
-            console.error('Failed to load chord-progressions.json:', error);
-            renderDetailView({ theory: '', music: '', genre: '' });
+            console.error('Failed to load progressionInfo.json:', error);
+            renderDetailView({ theory: '', music: [] });
         });
 }
 
@@ -336,30 +306,9 @@ function renderDetailView(detailData) {
         for (let i = 0; i < theoryLines.length; i++) {
             const line = theoryLines[i];
             if (line.trim() && line.trim() !== '< Info >') {
-                // Check if line contains bracketed theories
-                if (line.includes('[')) {
-                    // Extract all bracketed theories
-                    const bracketsRegex = /\[([^\]]+)\]/g;
-                    let match;
-                    let html = '<p class="detail-line" style="display: flex; gap: 8px; flex-wrap: wrap;">';
-                    let lastIndex = 0;
-                    
-                    while ((match = bracketsRegex.exec(line)) !== null) {
-                        const theoryName = match[1].trim();
-                        
-                        html += `<span class="theory-badge" data-theory-name="${escapeHtml(theoryName)}">${escapeHtml(theoryName)}</span>`;
-                    }
-                    
-                    html += '</p>';
-                    theoryHtml += html;
-
-                } else {
-                    // No brackets, render as before
-                    const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-                    theoryHtml += `<p class="detail-line" data-theory-tooltip="${escapeHtml(line.trim())}" style="cursor: help;">` + styledLine + `</p>`;
-                }
+                const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                theoryHtml += `<p class="detail-line">${styledLine}</p>`;
             } else if (line.trim() !== '< Info >' && line.trim() !== '') {
-                // Empty line for spacing
                 theoryHtml += `<p class="detail-line" style="height: 10px; margin: 0;"></p>`;
             }
         }
@@ -367,43 +316,21 @@ function renderDetailView(detailData) {
         theoryHtml = '<p style="color: #888;">No theory content yet.</p>';
     }
     
-    // Process music section with tooltip support
-    let processedMusic = detailData.music ? addTooltipsToContent(detailData.music) : '';
-    
-    if (processedMusic) {
-        const musicLines = processedMusic.split('\n');
-        for (let i = 0; i < musicLines.length; i++) {
-            const line = musicLines[i];
-            if (line.trim() && line.trim() !== '< Info >') {
-                const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-                musicHtml += `<p class="detail-line">${styledLine}</p>`;
-            } else if (line.trim() !== '< Info >' && line.trim() !== '') {
-                // Empty line for spacing
-                musicHtml += `<p class="detail-line" style="height: 10px; margin: 0;"></p>`;
+    // Process music section - now an array of music objects
+    if (detailData.music && Array.isArray(detailData.music) && detailData.music.length > 0) {
+        detailData.music.forEach(song => {
+            let songLine = '';
+            if (song.title) songLine += `<strong>${escapeHtml(song.title)}</strong>`;
+            if (song.artist) songLine += ` - ${escapeHtml(song.artist)}`;
+            if (song.part) songLine += ` <span style="color: #666;">(${escapeHtml(song.part)})</span>`;
+            if (song.genre) songLine += ` <span class="genre-badge">${escapeHtml(song.genre)}</span>`;
+            
+            if (songLine) {
+                musicHtml += `<p class="detail-line music-example">${songLine}</p>`;
             }
-        }
+        });
     } else {
-        musicHtml = '<p style="color: #888;">No music content yet.</p>';
-    }
-    
-    // Process genre section with tooltip support
-    let processedGenre = detailData.genre ? addTooltipsToContent(detailData.genre) : '';
-    let genreHtml = '';
-    
-    if (processedGenre) {
-        const genreLines = processedGenre.split('\n');
-        for (let i = 0; i < genreLines.length; i++) {
-            const line = genreLines[i];
-            if (line.trim() && line.trim() !== '< Info >') {
-                const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-                genreHtml += `<p class="detail-line">${styledLine}</p>`;
-            } else if (line.trim() !== '< Info >' && line.trim() !== '') {
-                // Empty line for spacing
-                genreHtml += `<p class="detail-line" style="height: 10px; margin: 0;"></p>`;
-            }
-        }
-    } else {
-        genreHtml = '<p style="color: #888;">No genre content yet.</p>';
+        musicHtml = '<p style="color: #888;">No music examples yet.</p>';
     }
     
     // Find the visible detailContent within progressionInfoPage
@@ -416,45 +343,16 @@ function renderDetailView(detailData) {
             <div class="detail-body">
                 ${theoryHtml}
             </div>
-            <h2 class="detail-section-title">Music</h2>
+            <h2 class="detail-section-title">Music Examples</h2>
             <div class="detail-body">
                 ${musicHtml}
             </div>
-            <h2 class="detail-section-title">Genre</h2>
-            <div class="detail-body">
-                ${genreHtml}
-            </div>
         </div>
     `;
-    
-    // Add event delegation for theory tooltips (CSP-compliant)
-    detailContent.addEventListener('mouseenter', (e) => {
-        const theoryBadge = e.target.closest('.theory-badge');
-        const detailLine = e.target.closest('.detail-line[data-theory-tooltip]');
-        
-        if (theoryBadge) {
-            const theoryName = theoryBadge.getAttribute('data-theory-name');
-            showTheoryTooltip(theoryName, e);
-        } else if (detailLine) {
-            const tooltipText = detailLine.getAttribute('data-theory-tooltip');
-            showTheoryTooltip(tooltipText, e);
-        }
-    }, true);
-    
-    detailContent.addEventListener('mouseleave', (e) => {
-        const theoryBadge = e.target.closest('.theory-badge');
-        const detailLine = e.target.closest('.detail-line[data-theory-tooltip]');
-        
-        if (theoryBadge || detailLine) {
-            hideTheoryTooltip();
-        }
-    }, true);
 }
 
 // Load progression detail for SPA
 function loadProgressionDetail() {
-    migrateOldContent();
-    
     // First priority: use window.lastSelectedUniqueKey (most recent click)
     if (window.lastSelectedUniqueKey) {
         currentUniqueKey = window.lastSelectedUniqueKey;
@@ -482,8 +380,6 @@ function loadProgressionDetail() {
 
 // Load progression detail
 window.addEventListener('DOMContentLoaded', () => {
-    migrateOldContent();
-    
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     let lineTitle = params.get('lineTitle');

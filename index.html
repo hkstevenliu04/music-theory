@@ -7,26 +7,11 @@
     <meta name="theme-color" content="crimson">
     <meta name="description" content="Fantasia music theory tools: chord generator, chord progressions, and theory explorer.">
     <title>Fantasia</title>
-    <!-- Fonts performance: preconnect + load fonts via HTML -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./src/styles/app.css">
-    <link rel="stylesheet" href="./pages/css/chordGenerator.css">
-    <link rel="stylesheet" href="./pages/css/chordProgression.css">
-    <link rel="stylesheet" href="./pages/css/musicTheory.css">
-    <link rel="stylesheet" href="./pages/css/progressionInfo.css">
-    <style>
-        body.show-floating-title .floating-title {
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            letter-spacing: 1px;
-            color: var(--brand);
-            text-shadow: 0 0 15px rgba(255, 23, 68, 0.6), 0 0 30px rgba(255, 23, 68, 0.3);
-            animation: glow 3s ease-in-out infinite, float 3s ease-in-out infinite;
-            text-align: center;
-            margin: 20px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="./src/styles/app.css?v=1.1">
+    <link rel="stylesheet" href="./pages/css/chordGenerator.css?v=1.1">
+    <link rel="stylesheet" href="./pages/css/chordProgression.css?v=1.1">
+    <link rel="stylesheet" href="./pages/css/musicTheory.css?v=1.1">
+    <link rel="stylesheet" href="./pages/css/progressionInfo.css?v=1.1">
 </head>
 <body>
     <div class="container">
@@ -60,8 +45,9 @@
             </div>
         </div>
         
+        <!-- Default Header -->
         <header>
-            <h1 id="pageTitle">Music Theory</h1>
+            <h1 id="pageTitle">Fantasia</h1>
             <button id="backBtn" class="back-btn" style="display: none;">←</button>
         </header>
 
@@ -129,10 +115,11 @@
         <footer></footer>
     </div>
 
-    <script src="./src/scripts/app.js" defer></script>
-    <script src="./pages/js/chordGenerator.js" defer></script>
-    <script src="./pages/js/progression-info.js" defer></script>
-    <script src="./pages/js/musicTheory.js" defer></script>
+    <script src="./src/scripts/app.js?v=1.8" defer></script>
+    <script src="./pages/js/chordProgression.js?v=1.8" defer></script>
+    <script src="./pages/js/chordGenerator.js?v=1.8" defer></script>
+    <script src="./pages/js/progressInfo.js?v=1.8" defer></script>
+    <script src="./pages/js/musicTheory.js?v=1.8" defer></script>
 </body>
 </html>
 

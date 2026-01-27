@@ -42,9 +42,8 @@ async function loadTheories() {
     const theoryList = document.getElementById('theoryList');
     
     try {
-        // Fetch data from JSON file
-        const response = await fetch('pages/json/musicTheory.json');
-        const musicTheoryArray = await response.json();
+        // Use centralized DataService instead of duplicating fetch logic
+        const musicTheoryArray = await DataService.getMusicTheory();
         
         // Clear old content first to prevent duplicates
         theoryList.innerHTML = '';

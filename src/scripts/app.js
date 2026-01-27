@@ -1,8 +1,98 @@
-// IndexedDB Database Manager
+// ==================== DATA SERVICE (Session-only cache) ====================
+const DataService = {
+    chordProgressions: null,
+    musicTheory: null,
+    progressionInfo: null,
+    
+    async getChordProgressions() {
+        // Return cached if already loaded this session
+        if (this.chordProgressions) {
+            return this.chordProgressions;
+        }
+        
+        try {
+            const response = await fetch('pages/json/chordProgressions.json');
+            const data = await response.json();
+            
+            // Transform to expected format
+            const progressions = data.map(group => ({
+                title: group.note,
+                content: group.note,
+                progressions: group.progressions || []
+            }));
+            
+            // Cache in memory for this session only
+            this.chordProgressions = progressions;
+            console.log('Loaded', progressions.length, 'progressions from chordProgressions.json');
+            return progressions;
+        } catch (error) {
+            console.error('Failed to load chordProgressions.json:', error);
+            // Fallback defaults
+            const defaults = ["1","b2","2","b3","3","4","#4","5","b6","6","b7","7"].map(note => ({
+                title: note,
+                content: note,
+                progressions: []
+            }));
+            this.chordProgressions = defaults;
+            return defaults;
+        }
+    },
+    
+    async getMusicTheory() {
+        // Return cached if already loaded this session
+        if (this.musicTheory) {
+            return this.musicTheory;
+        }
+        
+        try {
+            const response = await fetch('pages/json/musicTheory.json');
+            const data = await response.json();
+            
+            // Cache in memory for this session only
+            this.musicTheory = data;
+            console.log('Loaded', data.length, 'theory items from musicTheory.json');
+            return data;
+        } catch (error) {
+            console.error('Failed to load musicTheory.json:', error);
+            this.musicTheory = [];
+            return [];
+        }
+    },
+    
+    async getProgressionInfo() {
+        // Return cached if already loaded this session
+        if (this.progressionInfo) {
+            return this.progressionInfo;
+        }
+        
+        try {
+            const response = await fetch('pages/json/progressionInfo.json');
+            const data = await response.json();
+            
+            // Cache in memory for this session only
+            this.progressionInfo = data;
+            console.log('Loaded progression info from progressionInfo.json');
+            return data;
+        } catch (error) {
+            console.error('Failed to load progressionInfo.json:', error);
+            this.progressionInfo = {};
+            return {};
+        }
+    },
+    
+    // Clear cache (for testing/refresh)
+    clearCache() {
+        this.chordProgressions = null;
+        this.musicTheory = null;
+        this.progressionInfo = null;
+    }
+};
+
+// ==================== INDEXEDDB (Settings ONLY) ====================
 class MusicTheoryDB {
     constructor() {
         this.dbName = 'MusicTheoryDB';
-        this.version = 1;
+        this.version = 2; // Incremented version to trigger upgrade
         this.db = null;
         this.ready = false;
     }
@@ -25,20 +115,16 @@ class MusicTheoryDB {
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 
-                if (!db.objectStoreNames.contains('progressions')) {
-                    db.createObjectStore('progressions', { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains('progressionDetails')) {
-                    db.createObjectStore('progressionDetails', { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains('groupNames')) {
-                    db.createObjectStore('groupNames', { keyPath: 'id' });
-                }
+                // Remove old content stores if they exist
+                ['progressions', 'groupNames', 'musicTheory'].forEach(store => {
+                    if (db.objectStoreNames.contains(store)) {
+                        db.deleteObjectStore(store);
+                    }
+                });
+                
+                // Only keep settings store
                 if (!db.objectStoreNames.contains('settings')) {
                     db.createObjectStore('settings', { keyPath: 'key' });
-                }
-                if (!db.objectStoreNames.contains('musicTheory')) {
-                    db.createObjectStore('musicTheory', { keyPath: 'id' });
                 }
             };
         });
@@ -108,21 +194,7 @@ class MusicTheoryDB {
 
     async migrateFromLocalStorage() {
         try {
-            const progressions = localStorage.getItem('musicProgressions');
-            if (progressions) {
-                await this.set('progressions', 'default', JSON.parse(progressions));
-            }
-
-            const details = localStorage.getItem('progressionDetails');
-            if (details) {
-                await this.set('progressionDetails', 'default', JSON.parse(details));
-            }
-
-            const groupNames = localStorage.getItem('groupCustomNames');
-            if (groupNames) {
-                await this.set('groupNames', 'default', JSON.parse(groupNames));
-            }
-
+            // Only migrate user preferences, NOT content data
             const musicVolume = localStorage.getItem('musicVolume');
             if (musicVolume) {
                 await this.set('settings', 'musicVolume', parseFloat(musicVolume));
@@ -142,11 +214,13 @@ class MusicTheoryDB {
             if (sfxEnabled) {
                 await this.set('settings', 'sfxEnabled', sfxEnabled === 'true');
             }
-
-            const musicTheory = localStorage.getItem('musicTheory');
-            if (musicTheory) {
-                await this.set('musicTheory', 'default', JSON.parse(musicTheory));
-            }
+            
+            // Clean up old content data from localStorage
+            localStorage.removeItem('musicProgressions');
+            localStorage.removeItem('progressionDetails');
+            localStorage.removeItem('groupCustomNames');
+            localStorage.removeItem('musicTheory');
+            localStorage.removeItem('siteDescription');
         } catch (error) {
             console.error('Error during migration:', error);
         }
@@ -158,6 +232,23 @@ db.init().then(() => {
     db.migrateFromLocalStorage();
 }).catch(error => {
     console.error('Failed to initialize IndexedDB:', error);
+    
+    // If version error, delete and recreate the database
+    if (error.name === 'VersionError') {
+        console.log('Deleting old database and recreating...');
+        const deleteRequest = indexedDB.deleteDatabase('MusicTheoryDB');
+        deleteRequest.onsuccess = () => {
+            console.log('Database deleted, reinitializing...');
+            db.init().then(() => {
+                db.migrateFromLocalStorage();
+            }).catch(err => {
+                console.error('Failed to reinitialize after delete:', err);
+            });
+        };
+        deleteRequest.onerror = () => {
+            console.error('Failed to delete database:', deleteRequest.error);
+        };
+    }
 });
 
 /* ==================== ROUTER ==================== */
@@ -261,7 +352,7 @@ class Router {
 
     initPage(page) {
         if (page === 'chord-progression.html') {
-            if (typeof loadProgressions === 'function') loadProgressions();
+            if (typeof renderProgressions === 'function') renderProgressions();
         } else if (page === 'progression-info.html') {
             if (typeof loadProgressionDetail === 'function') loadProgressionDetail();
         } else if (page === 'music-theory.html') {
@@ -597,47 +688,53 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(document.body, { childList: true, subtree: true });
 });
 
-/* ==================== PROGRESSION SCRIPT ==================== */
+/* ==================== PROGRESSION SCRIPT (DEPRECATED - kept for compatibility) ==================== */
+// NOTE: These functions are deprecated. Use DataService.getChordProgressions() instead
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
+// Deprecated - only used for settings now
 const StorageManager = {
     async set(storeName, key, value) {
-        try {
-            if (typeof db !== 'undefined' && db.ready) {
-                await db.set(storeName, key, value);
+        // Only allow writing settings, not content
+        if (storeName === 'settings') {
+            try {
+                if (typeof db !== 'undefined' && db.ready) {
+                    await db.set(storeName, key, value);
+                }
+            } catch (error) {
+                console.warn('IndexedDB write failed, using localStorage:', error);
             }
-        } catch (error) {
-            console.warn('IndexedDB write failed, using localStorage:', error);
+            localStorage.setItem(key, JSON.stringify(value));
+        } else {
+            console.warn('StorageManager: Only settings can be saved. Content comes from JSON.');
         }
-        const lsKey = storeName === 'progressions' ? 'musicProgressions' : 
-                      storeName === 'progressionDetails' ? 'progressionDetails' :
-                      storeName === 'groupNames' ? 'groupCustomNames' : key;
-        localStorage.setItem(lsKey, JSON.stringify(value));
     },
 
     async get(storeName, key) {
-        try {
-            if (typeof db !== 'undefined' && db.ready) {
-                const value = await db.get(storeName, key);
-                if (value !== null) {
-                    return value;
+        // Only allow reading settings
+        if (storeName === 'settings') {
+            try {
+                if (typeof db !== 'undefined' && db.ready) {
+                    const value = await db.get(storeName, key);
+                    if (value !== null) {
+                        return value;
+                    }
                 }
+            } catch (error) {
+                console.warn('IndexedDB read failed, using localStorage:', error);
             }
-        } catch (error) {
-            console.warn('IndexedDB read failed, using localStorage:', error);
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : null;
         }
-        const lsKey = storeName === 'progressions' ? 'musicProgressions' : 
-                      storeName === 'progressionDetails' ? 'progressionDetails' :
-                      storeName === 'groupNames' ? 'groupCustomNames' : key;
-        const value = localStorage.getItem(lsKey);
-        return value ? JSON.parse(value) : null;
+        return null;
     }
 };
 
+// Deprecated constants
 const STORAGE_KEYS = {
     PROGRESSIONS: 'musicProgressions',
     GROUP_NAMES: 'groupCustomNames',
@@ -646,41 +743,17 @@ const STORAGE_KEYS = {
 
 let currentOpenGroup = null;
 
+// Deprecated - Use DataService.getChordProgressions() instead
 function initializeProgressions() {
-    let progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
-    if (progs.length === 0) {
-        fetch('pages/json/chordProgressions.json')
-            .then(response => response.json())
-            .then(data => {
-                const progressions = [];
-                if (Array.isArray(data)) {
-                    data.forEach(group => {
-                        progressions.push({
-                            title: group.note,
-                            content: group.note
-                        });
-                    });
-                }
-                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(progressions));
-                StorageManager.set('progressions', 'default', progressions);
-                console.log('Loaded', progressions.length, 'progressions from chord-progressions.json');
-            })
-            .catch(error => {
-                console.error('Failed to load chord-progressions.json:', error);
-                const defaults = ["1","b2","2","b3","3","4","#4","5","b6","6","b7","7"].map(note => ({
-                    title: note,
-                    content: note
-                }));
-                localStorage.setItem(STORAGE_KEYS.PROGRESSIONS, JSON.stringify(defaults));
-                StorageManager.set('progressions', 'default', defaults);
-            });
-    }
-    return progs;
+    console.warn('initializeProgressions is deprecated. Use DataService.getChordProgressions()');
+    return DataService.getChordProgressions();
 }
 
+// Deprecated - Use DataService.getChordProgressions() instead
 function loadProgressions() {
-    initializeProgressions();
-    const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
+    console.warn('loadProgressions is deprecated. Use DataService.getChordProgressions()');
+    DataService.getChordProgressions().then(() => {
+        const progs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESSIONS)) || [];
 
     const detailControls = document.getElementById('detailControls');
     if (detailControls) {
@@ -760,27 +833,27 @@ function loadProgressions() {
             let allContent = '';
             
             groups[key].forEach((prog, idx) => {
-                const contentLines = prog.content.split('\n');
-                let shouldBeCrimson = false;
-                
-                contentLines.forEach((line, lineIdx) => {
-                    if (line.trim() === '****') {
-                        shouldBeCrimson = true;
-                        return;
-                    }
-                    
-                    if (line.trim()) {
-                        const hasStyledText = line.includes('**');
-                        const hasContent = line.trim().length > 0;
-                        const isClickable = hasContent && !hasStyledText;
-                        const crimsonClass = shouldBeCrimson ? 'crimson-text' : '';
+                // Check if we have progressions data from JSON
+                if (prog.progressions && prog.progressions.length > 0) {
+                    prog.progressions.forEach((progression, progIdx) => {
+                        // Build the chord progression line
+                        let chordLine = '';
+                        if (Array.isArray(progression.chords)) {
+                            // Handle nested arrays (for complex progressions)
+                            if (Array.isArray(progression.chords[0])) {
+                                chordLine = progression.chords.map(barChords => 
+                                    Array.isArray(barChords) ? barChords.join(' ') : barChords
+                                ).join(' - ');
+                            } else {
+                                chordLine = progression.chords.join(' - ');
+                            }
+                        }
                         
-                        if (isClickable) {
-                            const raw = line.trim();
+                        // Create the progression grid (only show chords, no theory/music info)
+                        if (chordLine) {
+                            const raw = chordLine;
                             let bars = [];
-                            if (raw.includes('|')) {
-                                bars = raw.split('|').map(s => s.trim()).filter(Boolean);
-                            } else if (raw.includes(' - ')) {
+                            if (raw.includes(' - ')) {
                                 bars = raw.split(' - ').map(s => s.trim()).filter(Boolean);
                             } else {
                                 const tokens = raw.split(/\s+/).filter(Boolean);
@@ -795,26 +868,73 @@ function loadProgressions() {
                             while (bars.length < 4) bars.push('');
                             if (bars.length > 4) bars = bars.slice(0, 4);
 
-                            const encodedLine = encodeURIComponent(line.trim());
+                            const encodedLine = encodeURIComponent(chordLine);
                             let gridHTML = `<div class="progression-grid clickable-line" data-prog-index="${prog.origIndex}" data-line="${encodedLine}">`;
                             bars.forEach((bar) => {
                                 gridHTML += `<div class="progression-cell">${escapeHtml(bar)}</div>`;
                             });
                             gridHTML += `</div>`;
-                            allContent += `<div class="progression-notes ${crimsonClass}">${gridHTML}</div>`;
-                        } else {
-                            const styledText = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
-                            allContent += `<p class="progression-notes ${crimsonClass}">${styledText}</p>`;
+                            allContent += `<div class="progression-notes">${gridHTML}</div>`;
+                        }
+                    });
+                } else {
+                    // Fallback to old content format
+                    const contentLines = prog.content.split('\n');
+                    let shouldBeCrimson = false;
+                    
+                    contentLines.forEach((line, lineIdx) => {
+                        if (line.trim() === '****') {
+                            shouldBeCrimson = true;
+                            return;
                         }
                         
-                        if (hasStyledText) {
-                            shouldBeCrimson = true;
+                        if (line.trim()) {
+                            const hasStyledText = line.includes('**');
+                            const hasContent = line.trim().length > 0;
+                            const isClickable = hasContent && !hasStyledText;
+                            const crimsonClass = shouldBeCrimson ? 'crimson-text' : '';
+                            
+                            if (isClickable) {
+                                const raw = line.trim();
+                                let bars = [];
+                                if (raw.includes('|')) {
+                                    bars = raw.split('|').map(s => s.trim()).filter(Boolean);
+                                } else if (raw.includes(' - ')) {
+                                    bars = raw.split(' - ').map(s => s.trim()).filter(Boolean);
+                                } else {
+                                    const tokens = raw.split(/\s+/).filter(Boolean);
+                                    const perBar = Math.ceil(tokens.length / 4) || 1;
+                                    bars = [
+                                        tokens.slice(0, perBar).join(' '),
+                                        tokens.slice(perBar, perBar * 2).join(' '),
+                                        tokens.slice(perBar * 2, perBar * 3).join(' '),
+                                        tokens.slice(perBar * 3).join(' ')
+                                    ].map(s => s.trim());
+                                }
+                                while (bars.length < 4) bars.push('');
+                                if (bars.length > 4) bars = bars.slice(0, 4);
+
+                                const encodedLine = encodeURIComponent(line.trim());
+                                let gridHTML = `<div class="progression-grid clickable-line" data-prog-index="${prog.origIndex}" data-line="${encodedLine}">`;
+                                bars.forEach((bar) => {
+                                    gridHTML += `<div class="progression-cell">${escapeHtml(bar)}</div>`;
+                                });
+                                gridHTML += `</div>`;
+                                allContent += `<div class="progression-notes ${crimsonClass}">${gridHTML}</div>`;
+                            } else {
+                                const styledText = line.replace(/\*\*(.*?)\*\*/g, '<span class="bullet-dot">●</span> <span class="styled-text">$1</span>');
+                                allContent += `<p class="progression-notes ${crimsonClass}">${styledText}</p>`;
+                            }
+                            
+                            if (hasStyledText) {
+                                shouldBeCrimson = true;
+                            }
+                        } else {
+                            shouldBeCrimson = false;
+                            allContent += `<p class="progression-notes" style="height: 10px; margin: 0;"></p>`;
                         }
-                    } else {
-                        shouldBeCrimson = false;
-                        allContent += `<p class="progression-notes" style="height: 10px; margin: 0;"></p>`;
-                    }
-                });
+                    });
+                }
             });
             
             groupContentBox.innerHTML = allContent;
@@ -841,6 +961,7 @@ function loadProgressions() {
             previousContainer.classList.remove('collapsed');
         }
     }
+    }); // Close the promise .then()
 }
 
 function toggleGroupContent(key) {
@@ -893,30 +1014,6 @@ function showDetail(indexOrLineText, encodedLineTitle) {
 window.addEventListener('DOMContentLoaded', async () => {
     if (!localStorage.getItem(STORAGE_KEYS.SITE_DESCRIPTION)) {
         localStorage.setItem(STORAGE_KEYS.SITE_DESCRIPTION, 'Learn and explore chord progressions and music theory concepts.');
-    }
-    
-    let progressionDetails = JSON.parse(localStorage.getItem('progressionDetails')) || {};
-    if (Object.keys(progressionDetails).length === 0 && typeof db !== 'undefined' && db.ready) {
-        db.get('progressionDetails', 'default').then(idbData => {
-            if (idbData && Object.keys(idbData).length > 0) {
-                localStorage.setItem('progressionDetails', JSON.stringify(idbData));
-                console.log('Recovered progression details from IndexedDB');
-                if (document.getElementById('progressionInfoPage')) {
-                    location.reload();
-                }
-            }
-        }).catch(() => {
-            console.log('IndexedDB recovery failed, using default fallback');
-            setDefaultProgressionDetails();
-        });
-    } else if (Object.keys(progressionDetails).length === 0) {
-        setDefaultProgressionDetails();
-    }
-
-    function setDefaultProgressionDetails() {
-        const defaults = {"1 - 2 - 4 - 6m":{"theory":"Diatonic\n< Info >\nin scale","music":""},"New Theory":{"theory":"Chromatic \n< Info >\nnot in scale","music":""},"1M7 - 17 - 1add6 - 1+ㅤㅤ[ Chromatic Descent ]ㅤ[ Verse: 漫ろ雨 ]":{"theory":"Pedal Note","music":""},"15:1M7 - 17 - 1add6 - 1+ㅤㅤ[ Chromatic Descent ]ㅤ[ Verse: 漫ろ雨 ]":{"theory":"Pedal Note / Chromatic Descent","music":"","genre":""},"15:1M7 - 17 - 1add6 - 1+":{"theory":"[ Pedal Note ] [ Chromatic Descent ]","music":"","genre":""}};
-        localStorage.setItem('progressionDetails', JSON.stringify(defaults));
-        StorageManager.set('progressionDetails', 'default', defaults);
     }
 
     if (document.getElementById('siteDescription')) {
